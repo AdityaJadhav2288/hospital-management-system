@@ -1,0 +1,57 @@
+import { Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
+import { PatientService } from "../services/patient.service";
+
+export class PatientController {
+  public static async getDashboard(req: Request, res: Response): Promise<void> {
+    const metrics = await PatientService.getDashboardMetrics(req.user!.userId);
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Patient dashboard fetched",
+      data: metrics,
+    });
+  }
+
+  public static async getDoctors(_req: Request, res: Response): Promise<void> {
+    const doctors = await PatientService.getDoctors();
+    res.status(StatusCodes.OK).json({ success: true, message: "Doctors fetched", data: doctors });
+  }
+
+  public static async bookAppointment(req: Request, res: Response): Promise<void> {
+    const appointment = await PatientService.bookAppointment(req.user!.userId, req.body);
+    res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: "Appointment booked",
+      data: appointment,
+    });
+  }
+
+  public static async getOwnAppointments(req: Request, res: Response): Promise<void> {
+    const appointments = await PatientService.getOwnAppointments(req.user!.userId);
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Appointments fetched",
+      data: appointments,
+    });
+  }
+
+  public static async getProfile(req: Request, res: Response): Promise<void> {
+    const profile = await PatientService.getOwnProfile(req.user!.userId);
+    res.status(StatusCodes.OK).json({ success: true, message: "Profile fetched", data: profile });
+  }
+
+  public static async updateProfile(req: Request, res: Response): Promise<void> {
+    const profile = await PatientService.updateOwnProfile(req.user!.userId, req.body);
+    res.status(StatusCodes.OK).json({ success: true, message: "Profile updated", data: profile });
+  }
+
+  public static async getPrescriptions(req: Request, res: Response): Promise<void> {
+    const prescriptions = await PatientService.listOwnPrescriptions(req.user!.userId);
+    res.status(StatusCodes.OK).json({ success: true, message: "Prescriptions fetched", data: prescriptions });
+  }
+
+  public static async getVitals(req: Request, res: Response): Promise<void> {
+    const vitals = await PatientService.listOwnVitals(req.user!.userId);
+    res.status(StatusCodes.OK).json({ success: true, message: "Vitals fetched", data: vitals });
+  }
+}

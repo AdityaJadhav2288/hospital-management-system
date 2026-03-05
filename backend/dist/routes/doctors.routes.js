@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const client_1 = require("@prisma/client");
+const express_1 = require("express");
+const doctor_controller_1 = require("../controllers/doctor.controller");
+const public_controller_1 = require("../controllers/public.controller");
+const auth_1 = require("../middleware/auth");
+const authorize_1 = require("../middleware/authorize");
+const validate_1 = require("../middleware/validate");
+const async_handler_1 = require("../utils/async-handler");
+const validation_1 = require("../utils/validation");
+const router = (0, express_1.Router)();
+router.get("/", (0, validate_1.validateQuery)(validation_1.publicDoctorQuerySchema), (0, async_handler_1.asyncHandler)(public_controller_1.PublicController.getDoctors));
+router.get("/me/appointments", auth_1.protect, (0, authorize_1.authorize)(client_1.Role.DOCTOR), (0, async_handler_1.asyncHandler)(doctor_controller_1.DoctorController.getOwnAppointments));
+exports.default = router;

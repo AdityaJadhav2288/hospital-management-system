@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  DOCTOR
+  PATIENT
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model User {
+  id             String          @id @default(cuid())
+  name           String
+  email          String          @unique
+  password       String
+  role           Role
+  createdAt      DateTime        @default(now())
+  doctorProfile  DoctorProfile?
+  patientProfile PatientProfile?
+
+  @@map("users")
+}
+
+model DoctorProfile {
+  id              String        @id @default(cuid())
+  userId          String        @unique
+  departmentId    String?
+  specialty       String
+  experienceYears Int
+  bio             String?
+  imageUrl        String?
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department      Department?   @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  appointments    Appointment[]
+  prescriptions   Prescription[]
+  vitalsRecorded  Vitals[]
+
+  @@map("doctor_profiles")
+}
+
+model PatientProfile {
+  id           String        @id @default(cuid())
+  userId       String        @unique
+  phone        String
+  address      String
+  dateOfBirth  DateTime?
+  gender       String?
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+  prescriptions Prescription[]
+  vitals       Vitals[]
+
+  @@map("patient_profiles")
+}
+
+model Appointment {
+  id        String            @id @default(cuid())
+  doctorId  String
+  patientId String
+  date      DateTime
+  reason    String?
+  status    AppointmentStatus @default(PENDING)
+  doctor    DoctorProfile     @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient   PatientProfile    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  prescriptions Prescription[]
+
+  @@index([doctorId])
+  @@index([patientId])
+  @@index([date])
+  @@map("appointments")
+}
+
+model Department {
+  id          String          @id @default(cuid())
+  name        String          @unique
+  description String
+  icon        String?
+  createdAt   DateTime        @default(now())
+  doctors     DoctorProfile[]
+
+  @@map("departments")
+}
+
+model HealthPackage {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  price       Float
+  category    String
+  features    String[]
+  createdAt   DateTime @default(now())
+
+  @@index([category])
+  @@map("health_packages")
+}
+
+model BloodStock {
+  id          String   @id @default(cuid())
+  bloodGroup  String   @unique
+  units       Int
+  lastUpdated DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@map("blood_stocks")
+}
+
+model Prescription {
+  id            String         @id @default(cuid())
+  doctorId      String
+  patientId     String
+  appointmentId String?
+  medication    String
+  dosage        String
+  instructions  String
+  createdAt     DateTime       @default(now())
+  doctor        DoctorProfile  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient       PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointment   Appointment?   @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([doctorId])
+  @@index([patientId])
+  @@map("prescriptions")
+}
+
+model Vitals {
+  id               String         @id @default(cuid())
+  patientId        String
+  recordedByDoctorId String?
+  heightCm         Float?
+  weightKg         Float?
+  bloodPressure    String?
+  pulseRate        Int?
+  notes            String?
+  recordedAt       DateTime       @default(now())
+  patient          PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  recordedByDoctor DoctorProfile? @relation(fields: [recordedByDoctorId], references: [id], onDelete: SetNull)
+
+  @@index([patientId, recordedAt])
+  @@map("vitals")
+}
