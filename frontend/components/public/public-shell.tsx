@@ -12,9 +12,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
 
       {/* MAIN CONTENT */}
       <main className="flex-1">
-        <div className="mx-auto w-full max-w-7xl px-4">
-          {children}
-        </div>
+        {children}
       </main>
 
       {/* FOOTER */}

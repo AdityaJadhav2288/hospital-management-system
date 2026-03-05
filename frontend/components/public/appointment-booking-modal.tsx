@@ -6,6 +6,33 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Calendar, Phone, User, Stethoscope } from "lucide-react";
 
+// static list of departments
+const departmentList = [
+  "Cardiology",
+  "Neurology",
+  "Pediatrics",
+  "Oncology",
+  "Dermatology",
+  "Orthopedics",
+  "Radiology",
+  "Psychiatry",
+  "Gastroenterology",
+  "Endocrinology",
+  "Nephrology",
+  "Pulmonology",
+  "Urology",
+  "Ophthalmology",
+  "ENT",
+  "Rheumatology",
+  "Hematology",
+  "Infectious Disease",
+  "Plastic Surgery",
+  "Allergy & Immunology",
+];
+
+// doctor list is intentionally left empty; real data should be fetched based on department
+const doctorOptions: { id: number; name: string; specialty: string }[] = []; // no prefilled doctors
+
 import { useAuthStore } from "@/store/auth-store";
 
 import { Button } from "@/components/ui/button";
@@ -34,6 +61,9 @@ export function AppointmentBookingModal({
 
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [department, setDepartment] = useState("");
+  const [selectedDoctor, setSelectedDoctor] = useState<number | null>(null);
+  const [reason, setReason] = useState("");
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -110,12 +140,18 @@ export function AppointmentBookingModal({
             <Label>Department</Label>
             <div className="relative">
               <Stethoscope size={16} className="absolute left-3 top-3 text-muted-foreground" />
-              <Input
+              <select
                 name="department"
-                placeholder="Cardiology / Neurology"
-                className="pl-8"
+                className="pl-8 h-10 w-full rounded-md border bg-white py-2 pr-3 text-base focus:outline-none"
                 required
-              />
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+              >
+                <option value="">Select...</option>
+                {departmentList.map((sp) => (
+                  <option key={sp} value={sp}>{sp}</option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -131,6 +167,68 @@ export function AppointmentBookingModal({
               />
             </div>
           </div>
+
+          <div className="md:col-span-2">
+            <Label>Reason for Visit</Label>
+            <Input
+              name="reason"
+              placeholder="Brief description of issue"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              required
+            />
+          </div>
+
+          {/* DOCTOR SELECTION TABLE */}
+          {department && (
+            <div className="md:col-span-2">
+              <Label>Select Preferred Doctor</Label>
+              {doctorOptions.length === 0 ? (
+                <p className="mt-2 text-sm text-gray-500">
+                  No doctors are pre-filled. Doctor list will be loaded after
+                  department selection or from the server.
+                </p>
+              ) : (
+                <div className="mt-2 overflow-x-auto max-h-60">
+                  <table className="w-full table-auto border-collapse">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="p-2 text-left">Pick</th>
+                        <th className="p-2 text-left">Doctor</th>
+                        <th className="p-2 text-left">Specialty</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {doctorOptions
+                        .filter((doc) => doc.specialty === department)
+                        .map((doc) => (
+                          <tr
+                            key={doc.id}
+                            className={`border-t hover:bg-blue-50 ${
+                              selectedDoctor === doc.id ? "bg-blue-100" : ""
+                            }`}
+                          >
+                            <td className="p-2">
+                              <input
+                                type="radio"
+                                name="doctor"
+                                value={doc.id}
+                                checked={selectedDoctor === doc.id}
+                                onChange={() => setSelectedDoctor(doc.id)}
+                                className="h-4 w-4"
+                                required
+                              />
+                            </td>
+                            <td className="p-2">{doc.name}</td>
+                            <td className="p-2">{doc.specialty}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="md:col-span-2 pt-1">
             <Button type="submit" fullWidth loading={loading}>
