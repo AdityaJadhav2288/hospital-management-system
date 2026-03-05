@@ -4,7 +4,7 @@ import { PatientService } from "../services/patient.service";
 
 export class PatientController {
   public static async getDashboard(req: Request, res: Response): Promise<void> {
-    const metrics = await PatientService.getDashboardMetrics(req.user!.userId);
+    const metrics = await PatientService.getDashboardMetrics(req.user!.id);
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Patient dashboard fetched",
@@ -18,7 +18,7 @@ export class PatientController {
   }
 
   public static async bookAppointment(req: Request, res: Response): Promise<void> {
-    const appointment = await PatientService.bookAppointment(req.user!.userId, req.body);
+    const appointment = await PatientService.bookAppointment(req.user!.id, req.body);
     res.status(StatusCodes.CREATED).json({
       success: true,
       message: "Appointment booked",
@@ -27,7 +27,7 @@ export class PatientController {
   }
 
   public static async getOwnAppointments(req: Request, res: Response): Promise<void> {
-    const appointments = await PatientService.getOwnAppointments(req.user!.userId);
+    const appointments = await PatientService.getOwnAppointments(req.user!.id);
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Appointments fetched",
@@ -36,22 +36,22 @@ export class PatientController {
   }
 
   public static async getProfile(req: Request, res: Response): Promise<void> {
-    const profile = await PatientService.getOwnProfile(req.user!.userId);
+    const profile = await PatientService.getOwnProfile(req.user!.id);
     res.status(StatusCodes.OK).json({ success: true, message: "Profile fetched", data: profile });
   }
 
   public static async updateProfile(req: Request, res: Response): Promise<void> {
-    const profile = await PatientService.updateOwnProfile(req.user!.userId, req.body);
+    const profile = await PatientService.updateOwnProfile(req.user!.id, req.body);
     res.status(StatusCodes.OK).json({ success: true, message: "Profile updated", data: profile });
   }
 
   public static async getPrescriptions(req: Request, res: Response): Promise<void> {
-    const prescriptions = await PatientService.listOwnPrescriptions(req.user!.userId);
+    const prescriptions = await PatientService.listOwnPrescriptions(req.user!.id);
     res.status(StatusCodes.OK).json({ success: true, message: "Prescriptions fetched", data: prescriptions });
   }
 
   public static async getVitals(req: Request, res: Response): Promise<void> {
-    const vitals = await PatientService.listOwnVitals(req.user!.userId);
+    const vitals = await PatientService.listOwnVitals(req.user!.id);
     res.status(StatusCodes.OK).json({ success: true, message: "Vitals fetched", data: vitals });
   }
 }

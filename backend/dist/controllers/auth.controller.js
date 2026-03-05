@@ -5,7 +5,7 @@ const http_status_codes_1 = require("http-status-codes");
 const auth_service_1 = require("../services/auth.service");
 class AuthController {
     static async me(req, res) {
-        const user = await auth_service_1.AuthService.me(req.user.userId);
+        const user = await auth_service_1.AuthService.me(req.user.id);
         res.status(http_status_codes_1.StatusCodes.OK).json({
             success: true,
             message: "Current user fetched",

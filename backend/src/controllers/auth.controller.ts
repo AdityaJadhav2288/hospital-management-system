@@ -4,7 +4,7 @@ import { AuthService } from "../services/auth.service";
 
 export class AuthController {
   public static async me(req: Request, res: Response): Promise<void> {
-    const user = await AuthService.me(req.user!.userId);
+    const user = await AuthService.me(req.user!.id);
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Current user fetched",

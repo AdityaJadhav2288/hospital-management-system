@@ -15,13 +15,12 @@ const protect = async (req, res, next) => {
         const decoded = (0, jwt_1.verifyToken)(token);
         const user = await prisma_1.prisma.user.findUnique({
             where: { id: decoded.userId },
-            select: { id: true, role: true },
         });
         if (!user) {
             res.status(http_status_codes_1.StatusCodes.UNAUTHORIZED).json({ success: false, message: "Invalid token user" });
             return;
         }
-        req.user = { userId: user.id, role: user.role };
+        req.user = user;
         next();
     }
     catch {

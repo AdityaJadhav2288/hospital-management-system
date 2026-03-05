@@ -17,7 +17,6 @@ export const protect = async (req: Request, res: Response, next: NextFunction): 
     const decoded = verifyToken(token);
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, role: true },
     });
 
     if (!user) {
@@ -25,7 +24,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction): 
       return;
     }
 
-    req.user = { userId: user.id, role: user.role };
+    req.user = user;
     next();
   } catch {
     res.status(StatusCodes.UNAUTHORIZED).json({ success: false, message: "Invalid or expired token" });
