@@ -37,32 +37,60 @@ export function PatientForm({ initial, onComplete }: PatientFormProps) {
   };
 
   return (
-    <form className="grid gap-3 md:grid-cols-2" onSubmit={handleSubmit(submit)}>
-      <div className="space-y-1">
-        <Label>Name</Label>
-        <Input {...register("name")} />
+    <form
+      className="grid gap-5 rounded-lg border border-gray-200 bg-white p-6 shadow-sm md:grid-cols-2"
+      onSubmit={handleSubmit(submit)}
+    >
+      {/* Name */}
+      <div className="space-y-2">
+        <Label className="font-semibold text-gray-700">Name</Label>
+        <Input {...register("name")} placeholder="Patient full name" />
       </div>
-      <div className="space-y-1">
-        <Label>Email</Label>
-        <Input {...register("email")} />
+
+      {/* Email */}
+      <div className="space-y-2">
+        <Label className="font-semibold text-gray-700">Email</Label>
+        <Input {...register("email")} placeholder="patient@email.com" />
       </div>
-      <div className="space-y-1">
-        <Label>Phone</Label>
-        <Input {...register("phone")} />
+
+      {/* Phone */}
+      <div className="space-y-2">
+        <Label className="font-semibold text-gray-700">Phone</Label>
+        <Input {...register("phone")} placeholder="+91 9876543210" />
       </div>
-      <div className="space-y-1">
-        <Label>Address</Label>
-        <Input {...register("address")} />
+
+      {/* Address */}
+      <div className="space-y-2">
+        <Label className="font-semibold text-gray-700">Address</Label>
+        <Input {...register("address")} placeholder="City, Street address" />
       </div>
+
+      {/* Password (only when creating) */}
       {!initial ? (
-        <div className="space-y-1 md:col-span-2">
-          <Label>Temporary Password</Label>
-          <Input type="password" {...register("password")} placeholder="Minimum 8 characters" />
+        <div className="space-y-2 md:col-span-2">
+          <Label className="font-semibold text-gray-700">
+            Temporary Password
+          </Label>
+          <Input
+            type="password"
+            {...register("password")}
+            placeholder="Minimum 8 characters"
+          />
         </div>
       ) : null}
-      {Object.values(errors).length ? <p className="text-xs text-danger md:col-span-2">Please correct validation errors.</p> : null}
+
+      {/* Validation message */}
+      {Object.values(errors).length ? (
+        <p className="text-xs text-red-500 md:col-span-2">
+          Please correct validation errors.
+        </p>
+      ) : null}
+
+      {/* Submit */}
       <div className="md:col-span-2">
-        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save Patient"}</Button>
+        <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
+          {isSubmitting ? "Saving..." : "Save Patient"}
+        </Button>
       </div>
     </form>
   );

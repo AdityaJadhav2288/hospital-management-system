@@ -4,9 +4,19 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Calendar, Phone, User, Stethoscope } from "lucide-react";
+
 import { useAuthStore } from "@/store/auth-store";
+
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -21,15 +31,19 @@ export function AppointmentBookingModal({
 }: AppointmentBookingModalProps) {
   const router = useRouter();
   const { user } = useAuthStore();
+
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (loading) return;
+
     setLoading(true);
 
     if (!user || user.role !== "patient") {
-      toast.info("Login as patient to complete booking.");
+      toast.info("Please login as a patient to continue booking.");
       setLoading(false);
       setOpen(false);
       router.push("/login/patient");
@@ -47,39 +61,90 @@ export function AppointmentBookingModal({
       <DialogTrigger asChild>
         <Button className={triggerClassName}>{triggerLabel}</Button>
       </DialogTrigger>
+
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Appointment Request</DialogTitle>
+          <DialogTitle className="text-lg font-semibold">
+            Appointment Request
+          </DialogTitle>
+
           <p className="text-sm text-muted-foreground">
-            Share preferred details. We will guide you to the patient portal to confirm.
+            Enter your details and continue in the patient portal to confirm
+            your appointment.
           </p>
         </DialogHeader>
-        <form className="grid gap-3 md:grid-cols-2" onSubmit={handleSubmit}>
+
+        {/* FORM */}
+
+        <form
+          className="mt-3 grid gap-4 md:grid-cols-2"
+          onSubmit={handleSubmit}
+        >
           <div className="space-y-1">
             <Label>Name</Label>
-            <Input name="name" required />
+            <div className="relative">
+              <User size={16} className="absolute left-3 top-3 text-muted-foreground" />
+              <Input
+                name="name"
+                placeholder="Your full name"
+                className="pl-8"
+                required
+              />
+            </div>
           </div>
+
           <div className="space-y-1">
             <Label>Phone</Label>
-            <Input name="phone" required />
+            <div className="relative">
+              <Phone size={16} className="absolute left-3 top-3 text-muted-foreground" />
+              <Input
+                name="phone"
+                placeholder="Mobile number"
+                className="pl-8"
+                required
+              />
+            </div>
           </div>
+
           <div className="space-y-1">
             <Label>Department</Label>
-            <Input name="department" placeholder="Cardiology" required />
+            <div className="relative">
+              <Stethoscope size={16} className="absolute left-3 top-3 text-muted-foreground" />
+              <Input
+                name="department"
+                placeholder="Cardiology / Neurology"
+                className="pl-8"
+                required
+              />
+            </div>
           </div>
+
           <div className="space-y-1">
             <Label>Preferred Date</Label>
-            <Input name="preferredDate" type="date" required />
+            <div className="relative">
+              <Calendar size={16} className="absolute left-3 top-3 text-muted-foreground" />
+              <Input
+                name="preferredDate"
+                type="date"
+                className="pl-8"
+                required
+              />
+            </div>
           </div>
-          <div className="md:col-span-2">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Processing..." : "Continue"}
+
+          <div className="md:col-span-2 pt-1">
+            <Button type="submit" fullWidth loading={loading}>
+              Continue
             </Button>
           </div>
         </form>
-        <p className="text-xs text-muted-foreground">
-          Already have account?{" "}
-          <Link className="text-primary underline" href="/login/patient">
+
+        <p className="text-xs text-muted-foreground text-center">
+          Already have an account?{" "}
+          <Link
+            className="text-primary font-medium underline"
+            href="/login/patient"
+          >
             Patient login
           </Link>
         </p>

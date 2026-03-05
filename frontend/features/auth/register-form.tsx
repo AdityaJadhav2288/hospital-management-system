@@ -14,6 +14,7 @@ import { resolveApiError } from "@/services/api-client";
 
 export function RegisterForm() {
   const { register: registerUser } = useAuth();
+
   const {
     register,
     handleSubmit,
@@ -34,33 +35,61 @@ export function RegisterForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-1">
-        <Label>Full Name</Label>
-        <Input {...register("name")} />
-        {errors.name ? <p className="text-xs text-danger">{errors.name.message}</p> : null}
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-5 rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
+    >
+      {/* Name */}
+      <div className="space-y-2">
+        <Label className="font-semibold text-gray-700">Full Name</Label>
+
+        <Input {...register("name")} placeholder="Enter your full name" />
+
+        {errors.name ? (
+          <p className="text-xs text-red-500">{errors.name.message}</p>
+        ) : null}
       </div>
-      <div className="space-y-1">
-        <Label>Email</Label>
-        <Input {...register("email")} />
-        {errors.email ? <p className="text-xs text-danger">{errors.email.message}</p> : null}
+
+      {/* Email */}
+      <div className="space-y-2">
+        <Label className="font-semibold text-gray-700">Email</Label>
+
+        <Input {...register("email")} placeholder="name@email.com" />
+
+        {errors.email ? (
+          <p className="text-xs text-red-500">{errors.email.message}</p>
+        ) : null}
       </div>
-      <div className="space-y-1">
-        <Label>Password</Label>
-        <Input type="password" {...register("password")} />
-        {errors.password ? <p className="text-xs text-danger">{errors.password.message}</p> : null}
+
+      {/* Password */}
+      <div className="space-y-2">
+        <Label className="font-semibold text-gray-700">Password</Label>
+
+        <Input type="password" {...register("password")} placeholder="Create a secure password" />
+
+        {errors.password ? (
+          <p className="text-xs text-red-500">{errors.password.message}</p>
+        ) : null}
       </div>
-      <div className="space-y-1">
-        <Label>Role</Label>
+
+      {/* Role */}
+      <div className="space-y-2">
+        <Label className="font-semibold text-gray-700">Role</Label>
+
         <Select
           onValueChange={(value) =>
-            setValue("role", value as RegisterSchema["role"], { shouldDirty: true, shouldTouch: true, shouldValidate: true })
+            setValue("role", value as RegisterSchema["role"], {
+              shouldDirty: true,
+              shouldTouch: true,
+              shouldValidate: true,
+            })
           }
           defaultValue="PATIENT"
         >
           <SelectTrigger>
             <SelectValue placeholder="Select Role" />
           </SelectTrigger>
+
           <SelectContent>
             <SelectItem value="ADMIN">Admin</SelectItem>
             <SelectItem value="DOCTOR">Doctor</SelectItem>
@@ -69,11 +98,17 @@ export function RegisterForm() {
         </Select>
       </div>
 
+      {/* Submit */}
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? "Creating account..." : "Register"}
       </Button>
-      <p className="text-sm text-muted-foreground">
-        Already have an account? <Link className="text-primary underline" href="/login/patient">Login</Link>
+
+      {/* Login link */}
+      <p className="text-center text-sm text-gray-500">
+        Already have an account?{" "}
+        <Link className="font-medium text-blue-600 hover:underline" href="/login/patient">
+          Login
+        </Link>
       </p>
     </form>
   );

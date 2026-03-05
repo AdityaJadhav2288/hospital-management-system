@@ -37,32 +37,58 @@ export function DoctorForm({ initial, onComplete }: DoctorFormProps) {
   };
 
   return (
-    <form className="grid gap-3 md:grid-cols-2" onSubmit={handleSubmit(submit)}>
-      <div className="space-y-1">
-        <Label>Name</Label>
-        <Input {...register("name")} />
-        {errors.name ? <p className="text-xs text-danger">{errors.name.message}</p> : null}
+    <form
+      className="grid gap-5 rounded-lg border border-gray-200 bg-white p-6 shadow-sm md:grid-cols-2"
+      onSubmit={handleSubmit(submit)}
+    >
+      {/* Name */}
+      <div className="space-y-2">
+        <Label className="font-semibold text-gray-700">Name</Label>
+        <Input {...register("name")} placeholder="Doctor full name" />
+        {errors.name ? (
+          <p className="text-xs text-red-500">{errors.name.message}</p>
+        ) : null}
       </div>
-      <div className="space-y-1">
-        <Label>Email</Label>
-        <Input {...register("email")} />
+
+      {/* Email */}
+      <div className="space-y-2">
+        <Label className="font-semibold text-gray-700">Email</Label>
+        <Input {...register("email")} placeholder="doctor@email.com" />
       </div>
-      <div className="space-y-1">
-        <Label>Specialization</Label>
-        <Input {...register("specialization")} />
+
+      {/* Specialization */}
+      <div className="space-y-2">
+        <Label className="font-semibold text-gray-700">Specialization</Label>
+        <Input {...register("specialization")} placeholder="e.g. Cardiologist" />
       </div>
-      <div className="space-y-1">
-        <Label>Experience (Years)</Label>
+
+      {/* Experience */}
+      <div className="space-y-2">
+        <Label className="font-semibold text-gray-700">
+          Experience (Years)
+        </Label>
         <Input type="number" {...register("experienceYears")} />
       </div>
+
+      {/* Password (create only) */}
       {!initial ? (
-        <div className="space-y-1 md:col-span-2">
-          <Label>Temporary Password</Label>
-          <Input type="password" {...register("password")} placeholder="Minimum 8 characters" />
+        <div className="space-y-2 md:col-span-2">
+          <Label className="font-semibold text-gray-700">
+            Temporary Password
+          </Label>
+          <Input
+            type="password"
+            {...register("password")}
+            placeholder="Minimum 8 characters"
+          />
         </div>
       ) : null}
+
+      {/* Submit */}
       <div className="md:col-span-2">
-        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save Doctor"}</Button>
+        <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
+          {isSubmitting ? "Saving..." : "Save Doctor"}
+        </Button>
       </div>
     </form>
   );
