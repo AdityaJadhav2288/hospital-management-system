@@ -16,13 +16,10 @@ const routes_1 = __importDefault(require("./routes"));
 exports.app = (0, express_1.default)();
 exports.app.use((0, helmet_1.default)());
 exports.app.use((0, cors_1.default)({
-    origin: (origin, callback) => {
-        if (!origin || env_1.allowedCorsOrigins.includes(origin)) {
-            callback(null, true);
-            return;
-        }
-        callback(new Error("CORS origin not allowed"));
-    },
+    origin: [
+        "http://localhost:3000",
+        "https://hospital-management-system.vercel.app"
+    ],
     credentials: true,
 }));
 exports.app.use(express_1.default.json({ limit: "1mb" }));
@@ -30,7 +27,10 @@ exports.app.use(express_1.default.urlencoded({ extended: true }));
 exports.app.use((0, morgan_1.default)(env_1.env.NODE_ENV === "production" ? "combined" : "dev"));
 exports.app.use(rate_limit_1.apiRateLimiter);
 exports.app.get("/health", (_req, res) => {
-    res.status(200).json({ success: true, message: "Hospital API is running" });
+    res.status(200).json({
+        success: true,
+        message: "Hospital API is running",
+    });
 });
 exports.app.use("/api/v1", routes_1.default);
 exports.app.use(not_found_1.notFound);
