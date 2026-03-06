@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
+import { cn } from "@/lib/utils";
 import { zodResolverV4 } from "@/lib/zod-resolver";
 import { loginSchema, type LoginSchema } from "@/lib/validators/auth";
 
@@ -19,9 +20,10 @@ const roleCards: Array<{ role: LoginSchema["role"]; label: string; helper: strin
 interface LoginFormProps {
   initialRole?: LoginSchema["role"];
   lockRole?: boolean;
+  redirectTo?: string | null;
 }
 
-export function LoginForm({ initialRole = "patient", lockRole = false }: LoginFormProps) {
+export function LoginForm({ initialRole = "patient", lockRole = false, redirectTo = null }: LoginFormProps) {
   const { login } = useAuth();
 
   const {
@@ -41,7 +43,7 @@ export function LoginForm({ initialRole = "patient", lockRole = false }: LoginFo
 
   const onSubmit = async (values: LoginSchema) => {
     try {
-      await login(values);
+      await login(values, redirectTo);
       toast.success("Login successful");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to login");
@@ -58,9 +60,7 @@ export function LoginForm({ initialRole = "patient", lockRole = false }: LoginFo
       {lockRole ? (
         <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm">
           <p className="font-semibold capitalize text-blue-700">{selectedRole} Portal Login</p>
-          <p className="text-xs text-gray-600">
-            You are signing into the {selectedRole} account panel.
-          </p>
+          <p className="text-xs text-gray-600">You are signing into the {selectedRole} account panel.</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -72,13 +72,14 @@ export function LoginForm({ initialRole = "patient", lockRole = false }: LoginFo
                 key={item.role}
                 type="button"
                 onClick={() =>
-                  setValue("role", item.role, { shouldDirty: true, shouldTouch: true })
+                  setValue("role", item.role, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
                 }
-                className={`rounded-lg border p-3 text-left transition-all ${
+                className={cn(
+                  "rounded-lg border p-3 text-left transition-all",
                   selectedRole === item.role
                     ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-blue-300"
-                }`}
+                    : "border-gray-200 hover:border-blue-300",
+                )}
               >
                 <p className="text-sm font-semibold text-gray-800">{item.label}</p>
                 <p className="text-xs text-gray-500">{item.helper}</p>
@@ -86,42 +87,28 @@ export function LoginForm({ initialRole = "patient", lockRole = false }: LoginFo
             ))}
           </div>
 
-          {errors.role ? (
-            <p className="text-xs text-red-500">{errors.role.message}</p>
-          ) : null}
+          {errors.role ? <p className="text-xs text-red-500">{errors.role.message}</p> : null}
         </div>
       )}
 
-      {/* Email */}
       <div className="space-y-2">
         <Label className="font-semibold text-gray-700">Email</Label>
-
         <Input placeholder="name@email.com" {...register("email")} />
-
-        {errors.email ? (
-          <p className="text-xs text-red-500">{errors.email.message}</p>
-        ) : null}
+        {errors.email ? <p className="text-xs text-red-500">{errors.email.message}</p> : null}
       </div>
 
-      {/* Password */}
       <div className="space-y-2">
         <Label className="font-semibold text-gray-700">Password</Label>
-
         <Input type="password" {...register("password")} />
-
-        {errors.password ? (
-          <p className="text-xs text-red-500">{errors.password.message}</p>
-        ) : null}
+        {errors.password ? <p className="text-xs text-red-500">{errors.password.message}</p> : null}
       </div>
 
-      {/* Submit */}
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
+      <Button type="submit" className="w-full" disabled={isSubmitting} loading={isSubmitting}>
         {isSubmitting ? "Signing in..." : "Login"}
       </Button>
 
-      {/* Register */}
       <p className="text-center text-sm text-gray-500">
-        New account?{" "}
+        New patient account?{" "}
         <Link className="font-medium text-blue-600 hover:underline" href="/auth/register">
           Register
         </Link>

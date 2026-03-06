@@ -3,15 +3,12 @@ import type { VitalsRecord } from "@/types/vitals";
 
 export interface PatientProfile {
   id: string;
+  name: string;
+  email: string;
   phone: string;
   address: string;
   dateOfBirth?: string | null;
   gender?: string | null;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-  };
 }
 
 interface ApiVitals {

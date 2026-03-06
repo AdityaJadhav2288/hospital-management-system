@@ -3,6 +3,7 @@ import { getRole } from "@/lib/auth";
 import { apiClient } from "@/services/api-client";
 import type { PaginatedResponse } from "@/types/api";
 import type { Appointment, AppointmentFormPayload, AppointmentStatus } from "@/types/appointment";
+import type { Doctor } from "@/types/doctor";
 
 interface AppointmentQuery {
   search?: string;
@@ -17,31 +18,58 @@ interface ApiAppointment {
   reason?: string | null;
   status: AppointmentStatus;
   doctor?: {
+    id: string;
+    name?: string;
+    email?: string;
+    specialization?: string;
+    experience?: number;
+    department?: string;
+    profileImage?: string;
     user?: { name?: string };
   };
   patient?: {
+    id?: string;
+    name?: string;
+    email?: string;
+    phone?: string;
     user?: { name?: string };
   };
 }
 
-interface ApiDoctorOption {
+interface ApiDoctorRecord {
   id: string;
-  specialty: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-  };
+  name: string;
+  email: string;
+  specialization: string;
+  experience: number;
+  phone: string;
+  department: string;
+  profileImage: string;
+  bio?: string | null;
 }
 
 function mapAppointment(item: ApiAppointment): Appointment {
   return {
     id: item.id,
-    patientName: item.patient?.user?.name || "Unknown Patient",
-    doctorName: item.doctor?.user?.name || "Unknown Doctor",
+    patientName: item.patient?.name || item.patient?.user?.name || "Unknown Patient",
+    doctorName: item.doctor?.name || item.doctor?.user?.name || "Assigned Doctor",
     dateTime: item.date,
     status: item.status,
     reason: item.reason || "Consultation",
+  };
+}
+
+function mapDoctor(item: ApiDoctorRecord): Doctor {
+  return {
+    id: item.id,
+    name: item.name,
+    email: item.email,
+    specialization: item.specialization,
+    experienceYears: item.experience,
+    phone: item.phone,
+    department: item.department,
+    profileImage: item.profileImage,
+    bio: item.bio,
   };
 }
 
@@ -98,11 +126,8 @@ export const appointmentsService = {
     await apiClient.patch(`/doctor/appointments/${appointmentId}/status`, { status });
   },
 
-  listDoctorOptions: async (): Promise<Array<{ id: string; label: string }>> => {
-    const doctors = await apiClient.get<ApiDoctorOption[]>("/patient/doctors");
-    return doctors.map((doctor) => ({
-      id: doctor.id,
-      label: `${doctor.user.name} (${doctor.specialty})`,
-    }));
+  listDoctors: async (): Promise<Doctor[]> => {
+    const doctors = await apiClient.get<ApiDoctorRecord[]>("/doctors", { auth: false });
+    return doctors.map(mapDoctor);
   },
 };

@@ -1,6 +1,6 @@
-import { Role } from "@prisma/client";
 import { Router } from "express";
 import { StatusCodes } from "http-status-codes";
+import { Role } from "../constants/role";
 import { DoctorController } from "../controllers/doctor.controller";
 import { PatientController } from "../controllers/patient.controller";
 import { protect } from "../middleware/auth";

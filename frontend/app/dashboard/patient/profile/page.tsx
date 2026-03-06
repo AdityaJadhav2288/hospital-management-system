@@ -39,11 +39,11 @@ export default function PatientProfilePage() {
           >
             <div className="space-y-1">
               <Label>Name</Label>
-              <Input value={data?.user.name || ""} readOnly />
+              <Input value={data?.name || ""} readOnly />
             </div>
             <div className="space-y-1">
               <Label>Email</Label>
-              <Input value={data?.user.email || ""} readOnly />
+              <Input value={data?.email || ""} readOnly />
             </div>
             <div className="space-y-1">
               <Label>Phone</Label>

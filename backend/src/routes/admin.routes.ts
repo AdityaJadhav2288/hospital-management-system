@@ -1,5 +1,5 @@
-import { Role } from "@prisma/client";
 import { Router } from "express";
+import { Role } from "../constants/role";
 import { AdminController } from "../controllers/admin.controller";
 import { authorize } from "../middleware/authorize";
 import { protect } from "../middleware/auth";
@@ -10,6 +10,8 @@ import {
   createHealthPackageSchema,
   createUserByAdminSchema,
   listAppointmentsQuerySchema,
+  resetUserPasswordSchema,
+  scopedLoginSchema,
   updateDepartmentSchema,
   updateHealthPackageSchema,
   updateUserByAdminSchema,
@@ -18,15 +20,21 @@ import {
 
 const router = Router();
 
+router.post("/login", validateBody(scopedLoginSchema), asyncHandler(AdminController.login));
+
 router.use(protect, authorize(Role.ADMIN));
 
 router.get("/users", asyncHandler(AdminController.getUsers));
 router.get("/users/:id", asyncHandler(AdminController.getUserById));
 router.post("/users", validateBody(createUserByAdminSchema), asyncHandler(AdminController.createUser));
 router.patch("/users/:id", validateBody(updateUserByAdminSchema), asyncHandler(AdminController.updateUser));
+router.patch("/users/:id/password", validateBody(resetUserPasswordSchema), asyncHandler(AdminController.resetUserPassword));
 router.delete("/users/:id", asyncHandler(AdminController.deleteUser));
 
+router.get("/doctors", asyncHandler(AdminController.getDoctors));
+router.get("/patients", asyncHandler(AdminController.getPatients));
 router.get("/appointments", validateQuery(listAppointmentsQuerySchema), asyncHandler(AdminController.getAppointments));
+router.get("/contact-messages", asyncHandler(AdminController.getContactMessages));
 router.get("/dashboard", asyncHandler(AdminController.getDashboard));
 
 router.get("/departments", asyncHandler(AdminController.getDepartments));

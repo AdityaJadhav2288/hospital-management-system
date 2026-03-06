@@ -29,4 +29,9 @@ export class PublicController {
     const stats = await PublicService.getHospitalStats();
     res.status(StatusCodes.OK).json({ success: true, message: "Hospital stats fetched", data: stats });
   }
+
+  public static async createContactMessage(req: Request, res: Response): Promise<void> {
+    const message = await PublicService.createContactMessage(req.body);
+    res.status(StatusCodes.CREATED).json({ success: true, message: "Contact message sent", data: message });
+  }
 }

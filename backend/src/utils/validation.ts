@@ -1,82 +1,103 @@
-import { AppointmentStatus, Role } from "@prisma/client";
+import { AppointmentStatus } from "@prisma/client";
 import { z } from "zod";
+import { Role } from "../constants/role";
 
-const baseUserSchema = z.object({
+export const patientRegisterSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
   password: z.string().min(8),
-  role: z.nativeEnum(Role),
-  specialty: z.string().min(2).optional(),
-  experienceYears: z.coerce.number().int().min(0).max(60).optional(),
-  departmentId: z.string().optional(),
-  bio: z.string().max(2000).optional(),
-  imageUrl: z.string().url().optional(),
-  phone: z.string().min(7).optional(),
+  phone: z.string().min(7),
   address: z.string().min(3).optional(),
   dateOfBirth: z.coerce.date().optional(),
   gender: z.string().optional(),
 });
 
-const roleProfileRefinement = (data: z.infer<typeof baseUserSchema>, ctx: z.RefinementCtx): void => {
-  if (data.role === Role.DOCTOR) {
-    if (!data.specialty) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["specialty"], message: "specialty is required for DOCTOR" });
-    }
-    if (data.experienceYears === undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["experienceYears"],
-        message: "experienceYears is required for DOCTOR",
-      });
-    }
-  }
-
-  if (data.role === Role.PATIENT) {
-    if (!data.phone) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["phone"], message: "phone is required for PATIENT" });
-    }
-    if (!data.address) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["address"], message: "address is required for PATIENT" });
-    }
-  }
-};
-
-export const registerSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(8),
-  role: z.nativeEnum(Role),
-  specialty: z.string().min(2).optional(),
-  experienceYears: z.coerce.number().int().min(0).max(60).optional(),
-  departmentId: z.string().optional(),
-  bio: z.string().max(2000).optional(),
-  imageUrl: z.string().url().optional(),
-  phone: z.string().min(7).optional(),
-  address: z.string().min(3).optional(),
-  dateOfBirth: z.coerce.date().optional(),
-  gender: z.string().optional(),
-});
+export const registerSchema = patientRegisterSchema;
 
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
+  role: z.nativeEnum(Role),
 });
 
-export const createUserByAdminSchema = baseUserSchema.superRefine(roleProfileRefinement);
+export const scopedLoginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+export const createUserByAdminSchema = z
+  .object({
+    name: z.string().min(2),
+    email: z.string().email(),
+    password: z.string().min(8),
+    role: z.enum([Role.DOCTOR, Role.PATIENT]),
+    specialization: z.string().min(2).optional(),
+    experienceYears: z.coerce.number().int().min(0).max(60).optional(),
+    phone: z.string().min(7),
+    address: z.string().min(3).optional(),
+    department: z.string().min(2).optional(),
+    bio: z.string().max(2000).optional(),
+    profileImage: z.string().url().optional(),
+    dateOfBirth: z.coerce.date().optional(),
+    gender: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.role === Role.DOCTOR) {
+      if (!data.specialization) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["specialization"],
+          message: "specialization is required for DOCTOR",
+        });
+      }
+      if (data.experienceYears === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["experienceYears"],
+          message: "experienceYears is required for DOCTOR",
+        });
+      }
+      if (!data.department) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["department"],
+          message: "department is required for DOCTOR",
+        });
+      }
+      if (!data.profileImage) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["profileImage"],
+          message: "profileImage is required for DOCTOR",
+        });
+      }
+    }
+
+    if (data.role === Role.PATIENT && !data.address) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["address"],
+        message: "address is required for PATIENT",
+      });
+    }
+  });
 
 export const updateUserByAdminSchema = z.object({
   name: z.string().min(2).optional(),
   email: z.string().email().optional(),
-  role: z.nativeEnum(Role).optional(),
-  specialty: z.string().min(2).optional(),
+  specialization: z.string().min(2).optional(),
   experienceYears: z.coerce.number().int().min(0).max(60).optional(),
-  departmentId: z.string().optional(),
-  bio: z.string().max(2000).optional(),
-  imageUrl: z.string().url().optional(),
   phone: z.string().min(7).optional(),
   address: z.string().min(3).optional(),
+  department: z.string().min(2).optional(),
+  bio: z.string().max(2000).optional(),
+  profileImage: z.string().url().optional(),
   dateOfBirth: z.coerce.date().optional(),
   gender: z.string().optional(),
+});
+
+export const resetUserPasswordSchema = z.object({
+  password: z.string().min(8),
 });
 
 export const bookAppointmentSchema = z.object({
@@ -160,10 +181,21 @@ export const publicPackageQuerySchema = z.object({
   category: z.string().optional(),
 });
 
+export const createContactMessageSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  phone: z.string().min(7).optional(),
+  subject: z.string().min(2).max(120).optional(),
+  message: z.string().min(10).max(2000),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type PatientRegisterInput = z.infer<typeof patientRegisterSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type ScopedLoginInput = z.infer<typeof scopedLoginSchema>;
 export type CreateUserByAdminInput = z.infer<typeof createUserByAdminSchema>;
 export type UpdateUserByAdminInput = z.infer<typeof updateUserByAdminSchema>;
+export type ResetUserPasswordInput = z.infer<typeof resetUserPasswordSchema>;
 export type BookAppointmentInput = z.infer<typeof bookAppointmentSchema>;
 export type UpdateAppointmentStatusInput = z.infer<typeof updateAppointmentStatusSchema>;
 export type ListAppointmentsQueryInput = z.infer<typeof listAppointmentsQuerySchema>;
@@ -175,3 +207,4 @@ export type UpsertBloodStockInput = z.infer<typeof upsertBloodStockSchema>;
 export type CreatePrescriptionInput = z.infer<typeof createPrescriptionSchema>;
 export type CreateVitalsInput = z.infer<typeof createVitalsSchema>;
 export type UpdatePatientProfileInput = z.infer<typeof updatePatientProfileSchema>;
+export type CreateContactMessageInput = z.infer<typeof createContactMessageSchema>;

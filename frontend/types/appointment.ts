@@ -10,6 +10,8 @@ export interface Appointment {
   dateTime: string;
   status: AppointmentStatus;
   reason: string;
+  doctor?: Doctor;
+  patient?: Patient;
 }
 
 export interface AppointmentFormPayload {

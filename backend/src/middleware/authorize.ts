@@ -1,6 +1,6 @@
-import { Role } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
+import { Role } from "../constants/role";
 
 export const authorize = (...roles: Role[]) => (req: Request, res: Response, next: NextFunction): void => {
   if (!req.user) {

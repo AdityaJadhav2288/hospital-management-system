@@ -1,7 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { clearRole, clearToken, setRole, setToken } from "@/lib/auth";
+import {
+  clearAuthCookies,
+  clearRole,
+  clearToken,
+  sanitizeInternalRedirect,
+  setAuthCookies,
+  setRole,
+  setToken,
+} from "@/lib/auth";
 import { defaultDashboardByRole } from "@/lib/routes";
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/auth-store";
@@ -9,37 +17,45 @@ import type { LoginPayload, RegisterPayload } from "@/types/auth";
 
 export function useAuth() {
   const router = useRouter();
-  const { user, token, setSession, clearSession } = useAuthStore();
+  const { hydrated, user, token, setSession, clearSession } = useAuthStore();
 
-  const login = async (payload: LoginPayload) => {
+  const login = async (payload: LoginPayload, redirect?: string | null) => {
     const response = await authService.login(payload);
-    if (payload.role !== response.user.role) {
-      throw new Error(`This account is registered as ${response.user.role}. Please select that role.`);
-    }
+    const destination = sanitizeInternalRedirect(redirect) || defaultDashboardByRole[response.user.role];
 
     setToken(response.token);
     setRole(response.user.role);
+    setAuthCookies(response.token, response.user.role);
     setSession(response.token, response.user);
-    router.push(defaultDashboardByRole[response.user.role]);
+
+    if (typeof window !== "undefined") {
+      window.location.assign(destination);
+      return response;
+    }
+
+    router.replace(destination);
+
+    return response;
   };
 
   const register = async (payload: RegisterPayload) => {
-    await authService.register(payload);
+    const response = await authService.register(payload);
 
     clearToken();
     clearRole();
+    clearAuthCookies();
     clearSession();
-
-    const rolePath = payload.role.toLowerCase();
-    router.push(`/login/${rolePath}`);
+    router.replace("/login/patient");
+    return response;
   };
 
   const logout = () => {
     clearToken();
     clearRole();
+    clearAuthCookies();
     clearSession();
-    router.push("/login");
+    router.replace("/login");
   };
 
-  return { user, token, login, register, logout };
+  return { hydrated, user, token, login, register, logout };
 }

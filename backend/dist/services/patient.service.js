@@ -5,8 +5,8 @@ const http_status_codes_1 = require("http-status-codes");
 const prisma_1 = require("../config/prisma");
 const app_error_1 = require("../utils/app-error");
 class PatientService {
-    static async getDashboardMetrics(userId) {
-        const patient = await prisma_1.prisma.patientProfile.findUnique({ where: { userId } });
+    static async getDashboardMetrics(patientId) {
+        const patient = await prisma_1.prisma.patient.findUnique({ where: { id: patientId } });
         if (!patient) {
             throw new app_error_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "Patient profile not found");
         }
@@ -32,24 +32,29 @@ class PatientService {
         };
     }
     static async getDoctors() {
-        return prisma_1.prisma.doctorProfile.findMany({
-            include: {
-                user: {
-                    select: { id: true, name: true, email: true },
-                },
+        return prisma_1.prisma.doctor.findMany({
+            select: {
+                id: true,
+                name: true,
+                specialization: true,
+                email: true,
+                experience: true,
+                phone: true,
                 department: true,
+                profileImage: true,
+                bio: true,
             },
-            orderBy: {
-                user: { name: "asc" },
-            },
+            orderBy: { name: "asc" },
         });
     }
-    static async bookAppointment(userId, payload) {
-        const patient = await prisma_1.prisma.patientProfile.findUnique({ where: { userId } });
+    static async bookAppointment(patientId, payload) {
+        const [patient, doctor] = await Promise.all([
+            prisma_1.prisma.patient.findUnique({ where: { id: patientId } }),
+            prisma_1.prisma.doctor.findUnique({ where: { id: payload.doctorId } }),
+        ]);
         if (!patient) {
             throw new app_error_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "Patient profile not found");
         }
-        const doctor = await prisma_1.prisma.doctorProfile.findUnique({ where: { id: payload.doctorId } });
         if (!doctor) {
             throw new app_error_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "Doctor not found");
         }
@@ -60,10 +65,30 @@ class PatientService {
                 date: payload.date,
                 reason: payload.reason,
             },
+            include: {
+                doctor: {
+                    select: {
+                        id: true,
+                        name: true,
+                        specialization: true,
+                        experience: true,
+                        department: true,
+                        profileImage: true,
+                    },
+                },
+                patient: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true,
+                    },
+                },
+            },
         });
     }
-    static async getOwnAppointments(userId) {
-        const patient = await prisma_1.prisma.patientProfile.findUnique({ where: { userId } });
+    static async getOwnAppointments(patientId) {
+        const patient = await prisma_1.prisma.patient.findUnique({ where: { id: patientId } });
         if (!patient) {
             throw new app_error_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "Patient profile not found");
         }
@@ -72,28 +97,32 @@ class PatientService {
             orderBy: { date: "asc" },
             include: {
                 doctor: {
-                    include: {
-                        user: {
-                            select: { id: true, name: true, email: true },
-                        },
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        specialization: true,
+                        experience: true,
+                        phone: true,
                         department: true,
+                        profileImage: true,
                     },
                 },
             },
         });
     }
-    static async getOwnProfile(userId) {
-        const patient = await prisma_1.prisma.patientProfile.findUnique({
-            where: { userId },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        createdAt: true,
-                    },
-                },
+    static async getOwnProfile(patientId) {
+        const patient = await prisma_1.prisma.patient.findUnique({
+            where: { id: patientId },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                address: true,
+                dateOfBirth: true,
+                gender: true,
+                createdAt: true,
             },
         });
         if (!patient) {
@@ -101,28 +130,28 @@ class PatientService {
         }
         return patient;
     }
-    static async updateOwnProfile(userId, payload) {
-        const patient = await prisma_1.prisma.patientProfile.findUnique({ where: { userId } });
+    static async updateOwnProfile(patientId, payload) {
+        const patient = await prisma_1.prisma.patient.findUnique({ where: { id: patientId } });
         if (!patient) {
             throw new app_error_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "Patient profile not found");
         }
-        return prisma_1.prisma.patientProfile.update({
-            where: { userId },
+        return prisma_1.prisma.patient.update({
+            where: { id: patientId },
             data: payload,
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        createdAt: true,
-                    },
-                },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                address: true,
+                dateOfBirth: true,
+                gender: true,
+                createdAt: true,
             },
         });
     }
-    static async listOwnPrescriptions(userId) {
-        const patient = await prisma_1.prisma.patientProfile.findUnique({ where: { userId } });
+    static async listOwnPrescriptions(patientId) {
+        const patient = await prisma_1.prisma.patient.findUnique({ where: { id: patientId } });
         if (!patient) {
             throw new app_error_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "Patient profile not found");
         }
@@ -130,9 +159,12 @@ class PatientService {
             where: { patientId: patient.id },
             include: {
                 doctor: {
-                    include: {
-                        user: { select: { id: true, name: true, email: true } },
+                    select: {
+                        id: true,
+                        name: true,
+                        specialization: true,
                         department: true,
+                        profileImage: true,
                     },
                 },
                 appointment: true,
@@ -140,21 +172,14 @@ class PatientService {
             orderBy: { createdAt: "desc" },
         });
     }
-    static async listOwnVitals(userId) {
-        const patient = await prisma_1.prisma.patientProfile.findUnique({ where: { userId } });
+    static async listOwnVitals(patientId) {
+        const patient = await prisma_1.prisma.patient.findUnique({ where: { id: patientId } });
         if (!patient) {
             throw new app_error_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "Patient profile not found");
         }
         return prisma_1.prisma.vitals.findMany({
             where: { patientId: patient.id },
-            include: {
-                recordedByDoctor: {
-                    include: {
-                        user: { select: { id: true, name: true, email: true } },
-                    },
-                },
-            },
-            orderBy: { recordedAt: "asc" },
+            orderBy: { recordedAt: "desc" },
         });
     }
 }

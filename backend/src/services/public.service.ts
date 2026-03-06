@@ -1,34 +1,43 @@
 import { prisma } from "../config/prisma";
+import { CreateContactMessageInput } from "../utils/validation";
 
 export class PublicService {
   public static async listDoctors(specialty?: string) {
-    return prisma.doctorProfile.findMany({
-      where: specialty ? { specialty: { contains: specialty, mode: "insensitive" } } : undefined,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
+    return prisma.doctor.findMany({
+      where: specialty
+        ? { specialization: { contains: specialty, mode: "insensitive" } }
+        : undefined,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        specialization: true,
+        experience: true,
+        phone: true,
         department: true,
+        profileImage: true,
+        bio: true,
       },
-      orderBy: { user: { name: "asc" } },
+      orderBy: { name: "asc" },
     });
   }
 
   public static async listDepartments() {
-    return prisma.department.findMany({
-      include: {
-        _count: {
-          select: {
-            doctors: true,
-          },
-        },
+    const [departments, doctors] = await Promise.all([
+      prisma.department.findMany({
+        orderBy: { name: "asc" },
+      }),
+      prisma.doctor.findMany({
+        select: { department: true },
+      }),
+    ]);
+
+    return departments.map((department) => ({
+      ...department,
+      _count: {
+        doctors: doctors.filter((doctor) => doctor.department === department.name).length,
       },
-      orderBy: { name: "asc" },
-    });
+    }));
   }
 
   public static async listHealthPackages(category?: string) {
@@ -45,16 +54,22 @@ export class PublicService {
   }
 
   public static async getHospitalStats() {
-    const [bedsCount, doctorsCount, patientsCount] = await Promise.all([
+    const [bloodUnits, doctorsCount, patientsCount] = await Promise.all([
       prisma.bloodStock.aggregate({ _sum: { units: true } }),
-      prisma.doctorProfile.count(),
-      prisma.patientProfile.count(),
+      prisma.doctor.count(),
+      prisma.patient.count(),
     ]);
 
     return {
-      beds: Math.max(120, bedsCount._sum.units ?? 0),
+      beds: Math.max(120, bloodUnits._sum.units ?? 0),
       doctors: doctorsCount,
       patientsServed: patientsCount,
     };
+  }
+
+  public static async createContactMessage(payload: CreateContactMessageInput) {
+    return prisma.contactMessage.create({
+      data: payload,
+    });
   }
 }

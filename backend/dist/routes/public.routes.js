@@ -11,4 +11,5 @@ router.get("/departments", (0, async_handler_1.asyncHandler)(public_controller_1
 router.get("/packages", (0, validate_1.validateQuery)(validation_1.publicPackageQuerySchema), (0, async_handler_1.asyncHandler)(public_controller_1.PublicController.getPackages));
 router.get("/blood-stock", (0, async_handler_1.asyncHandler)(public_controller_1.PublicController.getBloodStock));
 router.get("/stats", (0, async_handler_1.asyncHandler)(public_controller_1.PublicController.getStats));
+router.post("/contact-messages", (0, validate_1.validateBody)(validation_1.createContactMessageSchema), (0, async_handler_1.asyncHandler)(public_controller_1.PublicController.createContactMessage));
 exports.default = router;

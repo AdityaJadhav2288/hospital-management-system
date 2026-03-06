@@ -1,27 +1,52 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.publicPackageQuerySchema = exports.publicDoctorQuerySchema = exports.updatePatientProfileSchema = exports.createVitalsSchema = exports.createPrescriptionSchema = exports.upsertBloodStockSchema = exports.updateHealthPackageSchema = exports.createHealthPackageSchema = exports.updateDepartmentSchema = exports.createDepartmentSchema = exports.listAppointmentsQuerySchema = exports.updateAppointmentStatusSchema = exports.bookAppointmentSchema = exports.updateUserByAdminSchema = exports.createUserByAdminSchema = exports.loginSchema = exports.registerSchema = void 0;
+exports.createContactMessageSchema = exports.publicPackageQuerySchema = exports.publicDoctorQuerySchema = exports.updatePatientProfileSchema = exports.createVitalsSchema = exports.createPrescriptionSchema = exports.upsertBloodStockSchema = exports.updateHealthPackageSchema = exports.createHealthPackageSchema = exports.updateDepartmentSchema = exports.createDepartmentSchema = exports.listAppointmentsQuerySchema = exports.updateAppointmentStatusSchema = exports.bookAppointmentSchema = exports.resetUserPasswordSchema = exports.updateUserByAdminSchema = exports.createUserByAdminSchema = exports.scopedLoginSchema = exports.loginSchema = exports.registerSchema = exports.patientRegisterSchema = void 0;
 const client_1 = require("@prisma/client");
 const zod_1 = require("zod");
-const baseUserSchema = zod_1.z.object({
+const role_1 = require("../constants/role");
+exports.patientRegisterSchema = zod_1.z.object({
     name: zod_1.z.string().min(2),
     email: zod_1.z.string().email(),
     password: zod_1.z.string().min(8),
-    role: zod_1.z.nativeEnum(client_1.Role),
-    specialty: zod_1.z.string().min(2).optional(),
-    experienceYears: zod_1.z.coerce.number().int().min(0).max(60).optional(),
-    departmentId: zod_1.z.string().optional(),
-    bio: zod_1.z.string().max(2000).optional(),
-    imageUrl: zod_1.z.string().url().optional(),
-    phone: zod_1.z.string().min(7).optional(),
+    phone: zod_1.z.string().min(7),
     address: zod_1.z.string().min(3).optional(),
     dateOfBirth: zod_1.z.coerce.date().optional(),
     gender: zod_1.z.string().optional(),
 });
-const roleProfileRefinement = (data, ctx) => {
-    if (data.role === client_1.Role.DOCTOR) {
-        if (!data.specialty) {
-            ctx.addIssue({ code: zod_1.z.ZodIssueCode.custom, path: ["specialty"], message: "specialty is required for DOCTOR" });
+exports.registerSchema = exports.patientRegisterSchema;
+exports.loginSchema = zod_1.z.object({
+    email: zod_1.z.string().email(),
+    password: zod_1.z.string().min(8),
+    role: zod_1.z.nativeEnum(role_1.Role),
+});
+exports.scopedLoginSchema = zod_1.z.object({
+    email: zod_1.z.string().email(),
+    password: zod_1.z.string().min(8),
+});
+exports.createUserByAdminSchema = zod_1.z
+    .object({
+    name: zod_1.z.string().min(2),
+    email: zod_1.z.string().email(),
+    password: zod_1.z.string().min(8),
+    role: zod_1.z.enum([role_1.Role.DOCTOR, role_1.Role.PATIENT]),
+    specialization: zod_1.z.string().min(2).optional(),
+    experienceYears: zod_1.z.coerce.number().int().min(0).max(60).optional(),
+    phone: zod_1.z.string().min(7),
+    address: zod_1.z.string().min(3).optional(),
+    department: zod_1.z.string().min(2).optional(),
+    bio: zod_1.z.string().max(2000).optional(),
+    profileImage: zod_1.z.string().url().optional(),
+    dateOfBirth: zod_1.z.coerce.date().optional(),
+    gender: zod_1.z.string().optional(),
+})
+    .superRefine((data, ctx) => {
+    if (data.role === role_1.Role.DOCTOR) {
+        if (!data.specialization) {
+            ctx.addIssue({
+                code: zod_1.z.ZodIssueCode.custom,
+                path: ["specialization"],
+                message: "specialization is required for DOCTOR",
+            });
         }
         if (data.experienceYears === undefined) {
             ctx.addIssue({
@@ -30,49 +55,44 @@ const roleProfileRefinement = (data, ctx) => {
                 message: "experienceYears is required for DOCTOR",
             });
         }
-    }
-    if (data.role === client_1.Role.PATIENT) {
-        if (!data.phone) {
-            ctx.addIssue({ code: zod_1.z.ZodIssueCode.custom, path: ["phone"], message: "phone is required for PATIENT" });
+        if (!data.department) {
+            ctx.addIssue({
+                code: zod_1.z.ZodIssueCode.custom,
+                path: ["department"],
+                message: "department is required for DOCTOR",
+            });
         }
-        if (!data.address) {
-            ctx.addIssue({ code: zod_1.z.ZodIssueCode.custom, path: ["address"], message: "address is required for PATIENT" });
+        if (!data.profileImage) {
+            ctx.addIssue({
+                code: zod_1.z.ZodIssueCode.custom,
+                path: ["profileImage"],
+                message: "profileImage is required for DOCTOR",
+            });
         }
     }
-};
-exports.registerSchema = zod_1.z.object({
-    name: zod_1.z.string().min(2),
-    email: zod_1.z.string().email(),
-    password: zod_1.z.string().min(8),
-    role: zod_1.z.nativeEnum(client_1.Role),
-    specialty: zod_1.z.string().min(2).optional(),
-    experienceYears: zod_1.z.coerce.number().int().min(0).max(60).optional(),
-    departmentId: zod_1.z.string().optional(),
-    bio: zod_1.z.string().max(2000).optional(),
-    imageUrl: zod_1.z.string().url().optional(),
-    phone: zod_1.z.string().min(7).optional(),
-    address: zod_1.z.string().min(3).optional(),
-    dateOfBirth: zod_1.z.coerce.date().optional(),
-    gender: zod_1.z.string().optional(),
+    if (data.role === role_1.Role.PATIENT && !data.address) {
+        ctx.addIssue({
+            code: zod_1.z.ZodIssueCode.custom,
+            path: ["address"],
+            message: "address is required for PATIENT",
+        });
+    }
 });
-exports.loginSchema = zod_1.z.object({
-    email: zod_1.z.string().email(),
-    password: zod_1.z.string().min(8),
-});
-exports.createUserByAdminSchema = baseUserSchema.superRefine(roleProfileRefinement);
 exports.updateUserByAdminSchema = zod_1.z.object({
     name: zod_1.z.string().min(2).optional(),
     email: zod_1.z.string().email().optional(),
-    role: zod_1.z.nativeEnum(client_1.Role).optional(),
-    specialty: zod_1.z.string().min(2).optional(),
+    specialization: zod_1.z.string().min(2).optional(),
     experienceYears: zod_1.z.coerce.number().int().min(0).max(60).optional(),
-    departmentId: zod_1.z.string().optional(),
-    bio: zod_1.z.string().max(2000).optional(),
-    imageUrl: zod_1.z.string().url().optional(),
     phone: zod_1.z.string().min(7).optional(),
     address: zod_1.z.string().min(3).optional(),
+    department: zod_1.z.string().min(2).optional(),
+    bio: zod_1.z.string().max(2000).optional(),
+    profileImage: zod_1.z.string().url().optional(),
     dateOfBirth: zod_1.z.coerce.date().optional(),
     gender: zod_1.z.string().optional(),
+});
+exports.resetUserPasswordSchema = zod_1.z.object({
+    password: zod_1.z.string().min(8),
 });
 exports.bookAppointmentSchema = zod_1.z.object({
     doctorId: zod_1.z.string().min(1),
@@ -141,4 +161,11 @@ exports.publicDoctorQuerySchema = zod_1.z.object({
 });
 exports.publicPackageQuerySchema = zod_1.z.object({
     category: zod_1.z.string().optional(),
+});
+exports.createContactMessageSchema = zod_1.z.object({
+    name: zod_1.z.string().min(2),
+    email: zod_1.z.string().email(),
+    phone: zod_1.z.string().min(7).optional(),
+    subject: zod_1.z.string().min(2).max(120).optional(),
+    message: zod_1.z.string().min(10).max(2000),
 });

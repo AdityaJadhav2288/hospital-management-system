@@ -10,6 +10,7 @@ export interface AuthUser {
 export interface AuthResponse {
   token: string;
   user: AuthUser;
+  demoPassword?: string;
 }
 
 export interface LoginPayload {
@@ -18,11 +19,10 @@ export interface LoginPayload {
   role: UserRole;
 }
 
-export type RegisterRole = "ADMIN" | "DOCTOR" | "PATIENT";
-
 export interface RegisterPayload {
   name: string;
   email: string;
   password: string;
-  role: RegisterRole;
+  phone: string;
+  address?: string;
 }

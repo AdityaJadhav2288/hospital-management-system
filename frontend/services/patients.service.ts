@@ -5,8 +5,11 @@ interface ApiPatientUser {
   id: string;
   name: string;
   email: string;
-  role: "PATIENT";
-  patientProfile: {
+  role?: "PATIENT";
+  createdAt?: string;
+  updatedAt?: string;
+  demoPassword?: string;
+  patientProfile?: {
     id: string;
     phone: string;
     address: string;
@@ -28,11 +31,15 @@ interface PatientPayload {
 function mapPatient(user: ApiPatientUser): Patient {
   return {
     id: user.id,
-    userId: user.id,
     name: user.name,
     email: user.email,
     phone: user.patientProfile?.phone || "",
     address: user.patientProfile?.address || "",
+    demoPassword: user.demoPassword,
+    dateOfBirth: user.patientProfile?.dateOfBirth || undefined,
+    gender: user.patientProfile?.gender || undefined,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
   };
 }
 
@@ -46,7 +53,7 @@ export const patientsService = {
     const created = await apiClient.post<ApiPatientUser>("/admin/users", {
       name: payload.name,
       email: payload.email,
-      password: payload.password || "ChangeMe123!",
+      password: payload.password || "patient123",
       role: "PATIENT",
       phone: payload.phone,
       address: payload.address,
@@ -72,5 +79,9 @@ export const patientsService = {
 
   remove: async (id: string): Promise<void> => {
     await apiClient.delete<{ success: boolean }>(`/admin/users/${id}`);
+  },
+
+  resetPassword: async (id: string, password: string): Promise<void> => {
+    await apiClient.patch<{ success: boolean }>(`/admin/users/${id}/password`, { password });
   },
 };

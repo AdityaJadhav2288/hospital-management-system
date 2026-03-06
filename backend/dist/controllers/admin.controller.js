@@ -2,8 +2,17 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminController = void 0;
 const http_status_codes_1 = require("http-status-codes");
+const auth_service_1 = require("../services/auth.service");
 const admin_service_1 = require("../services/admin.service");
 class AdminController {
+    static async login(req, res) {
+        const result = await auth_service_1.AuthService.loginAdmin(req.body);
+        res.status(http_status_codes_1.StatusCodes.OK).json({
+            success: true,
+            message: "Admin login successful",
+            data: result,
+        });
+    }
     static async getUsers(req, res) {
         const role = req.query.role;
         const users = await admin_service_1.AdminService.getUsers(role);
@@ -21,14 +30,30 @@ class AdminController {
         const user = await admin_service_1.AdminService.updateUser(req.params.id, req.body);
         res.status(http_status_codes_1.StatusCodes.OK).json({ success: true, message: "User updated", data: user });
     }
+    static async resetUserPassword(req, res) {
+        await admin_service_1.AdminService.resetUserPassword(req.params.id, req.body);
+        res.status(http_status_codes_1.StatusCodes.OK).json({ success: true, message: "Temporary password updated" });
+    }
     static async deleteUser(req, res) {
         await admin_service_1.AdminService.deleteUser(req.params.id);
         res.status(http_status_codes_1.StatusCodes.OK).json({ success: true, message: "User deleted" });
+    }
+    static async getDoctors(_req, res) {
+        const doctors = await admin_service_1.AdminService.listDoctors();
+        res.status(http_status_codes_1.StatusCodes.OK).json({ success: true, message: "Doctors fetched", data: doctors });
+    }
+    static async getPatients(_req, res) {
+        const patients = await admin_service_1.AdminService.listPatients();
+        res.status(http_status_codes_1.StatusCodes.OK).json({ success: true, message: "Patients fetched", data: patients });
     }
     static async getAppointments(req, res) {
         const status = req.query.status;
         const appointments = await admin_service_1.AdminService.listAppointments(status);
         res.status(http_status_codes_1.StatusCodes.OK).json({ success: true, message: "Appointments fetched", data: appointments });
+    }
+    static async getContactMessages(_req, res) {
+        const messages = await admin_service_1.AdminService.listContactMessages();
+        res.status(http_status_codes_1.StatusCodes.OK).json({ success: true, message: "Contact messages fetched", data: messages });
     }
     static async getDashboard(_req, res) {
         const metrics = await admin_service_1.AdminService.getDashboardMetrics();

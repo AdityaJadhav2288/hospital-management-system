@@ -5,14 +5,18 @@ interface ApiDoctorUser {
   id: string;
   name: string;
   email: string;
-  role: "DOCTOR";
-  doctorProfile: {
+  role?: "DOCTOR";
+  createdAt?: string;
+  updatedAt?: string;
+  demoPassword?: string;
+  doctorProfile?: {
     id: string;
     specialty: string;
     experienceYears: number;
-    departmentId?: string | null;
+    phone: string;
+    department: string;
     bio?: string | null;
-    imageUrl?: string | null;
+    imageUrl: string;
   } | null;
 }
 
@@ -21,20 +25,27 @@ interface DoctorPayload {
   email: string;
   specialization: string;
   experienceYears: number;
-  departmentId?: string;
+  phone?: string;
+  department?: string;
   bio?: string;
-  imageUrl?: string;
+  profileImage?: string;
   password?: string;
 }
 
 function mapDoctor(user: ApiDoctorUser): Doctor {
   return {
     id: user.id,
-    userId: user.id,
     name: user.name,
     email: user.email,
     specialization: user.doctorProfile?.specialty || "",
     experienceYears: user.doctorProfile?.experienceYears || 0,
+    phone: user.doctorProfile?.phone || "",
+    department: user.doctorProfile?.department || "",
+    profileImage: user.doctorProfile?.imageUrl || "",
+    bio: user.doctorProfile?.bio,
+    demoPassword: user.demoPassword,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
   };
 }
 
@@ -50,13 +61,16 @@ export const doctorsService = {
     const created = await apiClient.post<ApiDoctorUser>("/admin/users", {
       name: payload.name,
       email: payload.email,
-      password: payload.password || "ChangeMe123!",
+      password: payload.password || "doctor123",
       role: "DOCTOR",
-      specialty: payload.specialization,
+      specialization: payload.specialization,
       experienceYears: payload.experienceYears,
-      departmentId: payload.departmentId,
+      phone: payload.phone || "0000000000",
+      department: payload.department || payload.specialization,
       bio: payload.bio,
-      imageUrl: payload.imageUrl,
+      profileImage:
+        payload.profileImage ||
+        `https://ui-avatars.com/api/?background=0f766e&color=ffffff&name=${encodeURIComponent(payload.name)}`,
     });
 
     return mapDoctor(created);
@@ -66,11 +80,12 @@ export const doctorsService = {
     const updated = await apiClient.patch<ApiDoctorUser>(`/admin/users/${id}`, {
       name: payload.name,
       email: payload.email,
-      specialty: payload.specialization,
+      specialization: payload.specialization,
       experienceYears: payload.experienceYears,
-      departmentId: payload.departmentId,
+      phone: payload.phone,
+      department: payload.department,
       bio: payload.bio,
-      imageUrl: payload.imageUrl,
+      profileImage: payload.profileImage,
     });
 
     return mapDoctor(updated);
@@ -78,5 +93,9 @@ export const doctorsService = {
 
   remove: async (id: string): Promise<void> => {
     await apiClient.delete<{ success: boolean }>(`/admin/users/${id}`);
+  },
+
+  resetPassword: async (id: string, password: string): Promise<void> => {
+    await apiClient.patch<{ success: boolean }>(`/admin/users/${id}/password`, { password });
   },
 };

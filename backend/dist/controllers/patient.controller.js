@@ -2,8 +2,25 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PatientController = void 0;
 const http_status_codes_1 = require("http-status-codes");
+const auth_service_1 = require("../services/auth.service");
 const patient_service_1 = require("../services/patient.service");
 class PatientController {
+    static async register(req, res) {
+        const result = await auth_service_1.AuthService.registerPatient(req.body);
+        res.status(http_status_codes_1.StatusCodes.CREATED).json({
+            success: true,
+            message: "Patient registered successfully",
+            data: result,
+        });
+    }
+    static async login(req, res) {
+        const result = await auth_service_1.AuthService.loginPatient(req.body);
+        res.status(http_status_codes_1.StatusCodes.OK).json({
+            success: true,
+            message: "Patient login successful",
+            data: result,
+        });
+    }
     static async getDashboard(req, res) {
         const metrics = await patient_service_1.PatientService.getDashboardMetrics(req.user.id);
         res.status(http_status_codes_1.StatusCodes.OK).json({

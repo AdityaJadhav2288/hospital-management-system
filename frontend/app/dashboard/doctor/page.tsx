@@ -6,6 +6,7 @@ import { StatCard } from "@/components/shared/stat-card";
 import { DashboardSkeleton } from "@/features/dashboard/loading-skeleton";
 import { useApi } from "@/hooks/use-api";
 import { dashboardService } from "@/services/dashboard.service";
+import { ClipboardList, Clock3, Users } from "lucide-react";
 
 export default function DoctorDashboardPage() {
   const { data, loading, execute } = useApi(dashboardService.getDoctorMetrics);
@@ -19,10 +20,10 @@ export default function DoctorDashboardPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="Doctor Dashboard" description="Today's schedule and clinical actions" />
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard title="Today's Appointments" value={String(data.todaysAppointments)} />
-        <StatCard title="Unique Patients" value={String(data.totalPatients)} />
-        <StatCard title="Pending" value={String(data.pendingPrescriptions)} />
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <StatCard title="Today's Appointments" value={String(data.todaysAppointments)} icon={<Clock3 size={18} />} />
+        <StatCard title="Unique Patients" value={String(data.totalPatients)} icon={<Users size={18} />} />
+        <StatCard title="Pending" value={String(data.pendingPrescriptions)} icon={<ClipboardList size={18} />} />
       </div>
     </div>
   );

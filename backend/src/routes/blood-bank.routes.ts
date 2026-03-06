@@ -1,5 +1,5 @@
-import { Role } from "@prisma/client";
 import { Router } from "express";
+import { Role } from "../constants/role";
 import { AdminController } from "../controllers/admin.controller";
 import { PublicController } from "../controllers/public.controller";
 import { protect } from "../middleware/auth";

@@ -12,6 +12,7 @@ interface ApiAuthUser {
 interface ApiAuthPayload {
   token: string;
   user: ApiAuthUser;
+  demoPassword?: string;
 }
 
 const roleMap: Record<ApiAuthUser["role"], UserRole> = {
@@ -29,27 +30,39 @@ function toAuthResponse(payload: ApiAuthPayload): AuthResponse {
       email: payload.user.email,
       role: roleMap[payload.user.role],
     },
+    demoPassword: payload.demoPassword,
   };
+}
+
+function loginPathByRole(role: UserRole): string {
+  if (role === "admin") return "/admin/login";
+  if (role === "doctor") return "/doctor/login";
+  return "/patient/login";
 }
 
 export const authService = {
   login: async (payload: LoginPayload): Promise<AuthResponse> => {
     const response = await apiClient.post<ApiAuthPayload>(
-      "/auth/login",
+      loginPathByRole(payload.role),
       {
         email: payload.email,
         password: payload.password,
       },
       { auth: false },
     );
+
     return toAuthResponse(response);
   },
 
   register: async (payload: RegisterPayload): Promise<AuthResponse> => {
     const response = await apiClient.post<ApiAuthPayload>(
-      "/auth/register",
+      "/patient/register",
       {
-        ...payload,
+        name: payload.name,
+        email: payload.email,
+        password: payload.password,
+        phone: payload.phone,
+        address: payload.address,
       },
       { auth: false },
     );

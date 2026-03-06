@@ -1,68 +1,35 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect } from "react";
-
-import {
-  Activity,
-  Ambulance,
-  HeartPulse,
-  Microscope,
-  Stethoscope,
-  ArrowRight,
-  Award,
-  Clock,
-  Users,
-  Zap,
-  BadgeCheck,
-} from "lucide-react";
-
+import { ArrowRight, BadgeCheck, Clock3, HeartPulse, ShieldCheck, Stethoscope, UsersRound } from "lucide-react";
 import { DoctorCard } from "@/components/DoctorCard";
-import { ServiceCard } from "@/components/ServiceCard";
 import { AppointmentBookingModal } from "@/components/public/appointment-booking-modal";
-import { PublicShell } from "@/components/public/public-shell";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { Card, CardContent } from "@/components/ui/card";
+import { PublicShell } from "@/components/public/public-shell";
 import { useApi } from "@/hooks/use-api";
 import { publicService } from "@/services/public.service";
 
 const services = [
   {
-    name: "Cardiac Care",
-    description: "24x7 cardiac emergency and preventive heart programs.",
-    icon: HeartPulse,
+    title: "Cardiology and Critical Care",
+    description: "Heart screening, emergency response, ICU monitoring, and specialist consultation in one unit.",
   },
   {
-    name: "Emergency & Trauma",
-    description: "Rapid triage and trauma stabilization services.",
-    icon: Ambulance,
+    title: "Neurology and Diagnostics",
+    description: "Advanced imaging, neuro consultation, and follow-up care with fast digital reporting.",
   },
   {
-    name: "Laboratory Diagnostics",
-    description: "Fast pathology and digital lab reports.",
-    icon: Microscope,
+    title: "Women and Child Care",
+    description: "Gynecology, pediatrics, vaccination support, and preventive checkups for families.",
   },
   {
-    name: "General Medicine",
-    description: "Complete physician-led treatment for all age groups.",
-    icon: Stethoscope,
+    title: "Surgical and Day Care",
+    description: "Planned procedures, pre-op coordination, and post-operative support with shorter wait times.",
   },
-  {
-    name: "Critical Care",
-    description: "Advanced ICU with round-the-clock monitoring.",
-    icon: Activity,
-  },
-];
-
-const features = [
-  { icon: BadgeCheck, label: "Certified Doctors", value: "27+" },
-  { icon: Clock, label: "24/7 Available", value: "Always" },
-  { icon: Users, label: "Expert Team", value: "150+" },
-  { icon: Zap, label: "Quick Response", value: "< 5 min" },
 ];
 
 export default function HomePage() {
@@ -76,222 +43,219 @@ export default function HomePage() {
     void loadStats();
   }, [loadDoctors, loadDepartments, loadStats]);
 
+  const featuredDoctors = (doctors || []).slice(0, 3);
+  const featuredDepartments = (departments || []).slice(0, 6);
+
   return (
     <PublicShell>
-      {/* HERO SECTION */}
-      <section className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-50 -mt-2">
-        {/* Animated background elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" />
-
-        <div className="relative mx-auto max-w-7xl grid gap-8 px-4 pt-6 pb-12 md:grid-cols-2 md:pb-20">
-          {/* LEFT CONTENT */}
-          <div className="space-y-8 flex flex-col justify-center">
-            <Badge className="w-fit rounded-full bg-gradient-to-r from-blue-500/10 to-blue-600/10 px-4 py-2 text-blue-700 border border-blue-200">
-              ✨ Trusted Healthcare Excellence
+      <section className="overflow-hidden bg-[radial-gradient(circle_at_top_left,#cffafe,transparent_32%),linear-gradient(135deg,#f8fafc,#ffffff_45%,#eff6ff)]">
+        <div className="mx-auto grid max-w-7xl gap-12 px-4 pb-14 pt-8 sm:px-6 lg:grid-cols-[1.05fr,0.95fr] lg:pb-20 lg:pt-10">
+          <div className="flex flex-col justify-center gap-7">
+            <Badge className="w-fit rounded-full border border-cyan-200 bg-cyan-50 px-4 py-2 text-cyan-800">
+              Pune hospital care, online booking, and expert doctors
             </Badge>
 
             <div className="space-y-4">
-              <h1 className="text-6xl md:text-7xl font-extrabold leading-tight text-gray-900">
-                World-Class Healthcare
-                <br />
-                at Your Fingertips
+              <h1 className="max-w-2xl text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+                A cleaner and faster way to book hospital care in Pune
               </h1>
-
-              <p className="text-xl text-gray-600 max-w-lg leading-relaxed">
-                Experience compassionate care with cutting-edge technology. Our team of expert doctors is ready to serve you 24/7 with world-class treatment.
+              <p className="max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
+                MediCore connects patients with predefined specialists, responsive appointment booking, and a simple
+                digital hospital portal designed for real-day use on mobile and desktop.
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-4 pt-2">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <AppointmentBookingModal
-                triggerLabel="Book Appointment"
-                triggerClassName="h-12 px-8 text-base rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600"
+                triggerLabel="Book Patient Appointment"
+                triggerClassName="rounded-full bg-slate-950 px-6 text-white hover:bg-slate-800"
               />
-
-              <Link href="/doctors">
-                <Button size="lg" variant="outline" className="h-12 px-8 text-base border-2 hover:border-blue-600 hover:text-blue-600 hover:bg-blue-50">
-                  Meet Our Doctors
-                  <ArrowRight className="ml-2" size={18} />
+              <Link href="/contact">
+                <Button variant="outline" className="w-full rounded-full border-slate-300 px-6 sm:w-auto">
+                  Contact Hospital
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
             </div>
 
-            {/* Quick Features */}
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              {features.map((feature) => (
-                <div key={feature.label} className="flex items-center gap-3 p-4 rounded-lg bg-white border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all">
-                  <feature.icon className="w-5 h-5 text-blue-600" />
-                  <div>
-                    <p className="text-xs text-gray-500">{feature.label}</p>
-                    <p className="font-bold text-gray-900">{feature.value}</p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <Card className="border-slate-200 bg-white/80 shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-600">
+                      <BadgeCheck className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{stats?.doctors ?? 30}+ Doctors</p>
+                      <p className="text-xs text-slate-500">Predefined specialist roster</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                </CardContent>
+              </Card>
+              <Card className="border-slate-200 bg-white/80 shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-2xl bg-cyan-50 p-3 text-cyan-700">
+                      <Clock3 className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">24/7 Support</p>
+                      <p className="text-xs text-slate-500">Emergency and booking assistance</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-slate-200 bg-white/80 shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-2xl bg-blue-50 p-3 text-blue-700">
+                      <UsersRound className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{stats?.patientsServed ?? 0}+ Patients</p>
+                      <p className="text-xs text-slate-500">Managed in the HMS portal</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
 
-          {/* RIGHT SECTION - HOSPITAL SHOWCASE */}
-          <div className="relative hidden md:block">
-            <Card className="border border-blue-200 bg-white shadow-2xl overflow-hidden hover:shadow-3xl transition-shadow duration-300">
-              <div className="relative h-96 overflow-hidden">
-                <Image
-                  src="/hospital.png"
-                  alt="CityCare Hospital"
-                  width={1400}
-                  height={900}
-                  className="w-full h-full object-cover"
-                  priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          <div className="relative">
+            <div className="absolute -left-6 top-10 h-32 w-32 rounded-full bg-cyan-200/60 blur-3xl" />
+            <div className="absolute -right-10 bottom-10 h-36 w-36 rounded-full bg-blue-200/60 blur-3xl" />
+            <Card className="relative overflow-hidden rounded-[2rem] border-slate-200 bg-white shadow-2xl shadow-slate-200/80">
+              <div className="relative h-72 sm:h-96">
+                <Image src="/hospital.png" alt="MediCore Hospital Pune" fill className="object-cover" priority />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent,rgba(15,23,42,0.68))]" />
               </div>
-
-              <CardHeader className="pb-4 pt-6">
-                <CardTitle className="text-2xl bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-                  Hospital Highlights
-                </CardTitle>
-              </CardHeader>
-
-              {/* STATS */}
-              <CardContent className="grid grid-cols-3 gap-4 pb-6">
-                <div className="text-center p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
-                  <p className="text-4xl font-bold text-blue-600">{stats?.beds ?? 120}</p>
-                  <p className="text-sm text-gray-700 font-medium mt-1">Modern Beds</p>
+              <div className="grid gap-4 p-6 sm:grid-cols-2">
+                <div className="rounded-3xl bg-slate-950 p-5 text-white">
+                  <p className="text-xs uppercase tracking-[0.18em] text-cyan-300">Hospital Snapshot</p>
+                  <p className="mt-3 text-3xl font-semibold">{stats?.beds ?? 120}</p>
+                  <p className="mt-1 text-sm text-slate-300">Operational beds with emergency-ready support teams</p>
                 </div>
-
-                <div className="text-center p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
-                  <p className="text-4xl font-bold text-green-600">30+</p>
-                  <p className="text-sm text-gray-700 font-medium mt-1">Expert Doctors</p>
+                <div className="space-y-3 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                  <div className="flex items-center gap-3">
+                    <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                    <p className="text-sm font-medium text-slate-700">Patient-first digital workflow</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <HeartPulse className="h-5 w-5 text-rose-500" />
+                    <p className="text-sm font-medium text-slate-700">Appointments, history, and admin visibility</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Stethoscope className="h-5 w-5 text-cyan-700" />
+                    <p className="text-sm font-medium text-slate-700">30 predefined doctors across core departments</p>
+                  </div>
                 </div>
-
-                <div className="text-center p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
-                  <p className="text-4xl font-bold text-purple-600">{stats?.patientsServed ?? 200}k+</p>
-                  <p className="text-sm text-gray-700 font-medium mt-1">Patients</p>
-                </div>
-              </CardContent>
-
-              {/* EMERGENCY HELPLINE */}
-              <CardContent className="pt-0 pb-6 px-6">
-                <div className="rounded-xl border-2 border-red-300 bg-gradient-to-br from-red-50 to-red-100 p-4 text-center">
-                  <p className="text-sm text-gray-700 font-medium">🚨 Emergency Hotline</p>
-                  <p className="text-2xl font-bold text-red-600 mt-2">
-                    +91 1800-123-911
-                  </p>
-                  <p className="text-xs text-red-500 mt-1">Available 24/7</p>
-                </div>
-              </CardContent>
+              </div>
             </Card>
           </div>
         </div>
       </section>
 
-      {/* SERVICES SECTION */}
-      <section className="py-12 px-4 bg-white">
-        <div className="mx-auto max-w-7xl">
-          <div className="text-center mb-12">
-            <Badge className="mb-4 rounded-full bg-blue-100 px-4 py-2 text-blue-700 border border-blue-300">
-              Our Services
-            </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-              Comprehensive Healthcare Solutions
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              From emergency care to specialized treatments, we provide world-class medical services
+      <section className="bg-white py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-700">Core Services</p>
+              <h2 className="mt-2 text-3xl font-semibold text-slate-950 sm:text-4xl">Hospital departments patients use most</h2>
+            </div>
+            <p className="max-w-2xl text-sm leading-6 text-slate-600">
+              The website now focuses on specialist booking, clean information, and faster admin visibility instead of
+              oversized banner sections.
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-            {services.map((service) => {
-              const Icon = service.icon;
-              return (
-                <Card key={service.name} className="group border border-gray-200 hover:border-blue-400 bg-white hover:shadow-xl transition-all duration-300 overflow-hidden">
-                  <CardContent className="pt-8 pb-6 text-center">
-                    <div className="mb-4 inline-flex p-4 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 group-hover:from-blue-200 group-hover:to-blue-100 transition-colors">
-                      <Icon className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <CardTitle className="text-lg mb-2">{service.name}</CardTitle>
-                    <p className="text-sm text-gray-600">{service.description}</p>
-                  </CardContent>
-                </Card>
-              );
-            })}
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {services.map((service) => (
+              <Card key={service.title} className="rounded-[1.5rem] border-slate-200 shadow-sm">
+                <CardContent className="p-6">
+                  <p className="text-lg font-semibold text-slate-950">{service.title}</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">{service.description}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* WHY CHOOSE US SECTION */}
-      <section className="py-12 px-4 bg-white">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid gap-12 md:grid-cols-2 items-center">
+      <section className="bg-slate-950 py-14 text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <Badge className="mb-4 rounded-full bg-blue-100 px-4 py-2 text-blue-700 border border-blue-300 w-fit">
-                Why Choose Us
-              </Badge>
-              <h2 className="text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-                Excellence in Every Aspect
-              </h2>
-              <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-                We combine state-of-the-art medical technology with compassionate care to deliver exceptional healthcare experiences. Our commitment to excellence sets us apart.
-              </p>
-
-              <div className="space-y-4">
-                {[
-                  "World-class medical infrastructure and technology",
-                  "Expert team of specialists and consultants",
-                  "Patient-centric approach to healthcare",
-                  "Affordable and transparent pricing",
-                  "Quick appointment booking and services",
-                ].map((item, i) => (
-                  <div key={i} className="flex gap-4 items-center p-3 rounded-lg hover:bg-blue-50 transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-                      <BadgeCheck className="w-5 h-5 text-white" />
-                    </div>
-                    <p className="text-gray-700 font-medium">{item}</p>
-                  </div>
-                ))}
-              </div>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-300">Departments</p>
+              <h2 className="mt-2 text-3xl font-semibold">Pune-ready specialties with clear patient routing</h2>
             </div>
+            <Link href="/doctors" className="text-sm font-medium text-cyan-300 transition hover:text-white">
+              View all doctors
+            </Link>
+          </div>
 
-            <div className="relative">
-              <div className="rounded-2xl overflow-hidden shadow-2xl">
-                <Image
-                  src="/hospital.png"
-                  alt="Why Choose Us"
-                  width={600}
-                  height={600}
-                  className="w-full h-auto object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-blue-600/30 to-transparent" />
+          <div className="flex flex-wrap gap-3">
+            {featuredDepartments.map((department) => (
+              <div key={department.id} className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-slate-200">
+                {department.name}
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* CTA SECTION */}
-      <section className="relative py-12 px-4 bg-gradient-to-r from-blue-600 to-blue-500 overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full mix-blend-multiply filter blur-3xl opacity-10" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-white rounded-full mix-blend-multiply filter blur-3xl opacity-10" />
+      <section className="bg-slate-50 py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-700">Featured Doctors</p>
+              <h2 className="mt-2 text-3xl font-semibold text-slate-950 sm:text-4xl">Choose a specialist and book faster</h2>
+            </div>
+            <p className="max-w-2xl text-sm leading-6 text-slate-600">
+              The appointment flow now leads patients into the patient login page directly before opening the booking
+              experience.
+            </p>
+          </div>
 
-        <div className="relative mx-auto max-w-7xl text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
-            Ready to Take Care of Your Health?
-          </h2>
-          <p className="text-xl text-blue-50 mb-8 max-w-2xl mx-auto">
-            Book an appointment with our expert doctors today and experience world-class healthcare
-          </p>
+          <div className="grid gap-5 lg:grid-cols-3">
+            {featuredDoctors.map((doctor) => (
+              <DoctorCard
+                key={doctor.id}
+                id={doctor.id}
+                name={doctor.name}
+                specialization={doctor.specialization}
+                experienceYears={doctor.experienceYears}
+                department={doctor.department}
+                email={doctor.email}
+                phone={doctor.phone}
+                onBook={(doctorId) => {
+                  window.location.href = `/patient/appointments/book?doctorId=${encodeURIComponent(doctorId)}`;
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
 
-          <div className="flex flex-wrap justify-center gap-4">
-            <AppointmentBookingModal
-              triggerLabel="Book Appointment Now"
-              triggerClassName="h-12 px-8 text-base rounded-lg bg-white hover:bg-gray-100 text-blue-600 font-semibold"
-            />
-            <Link href="/contact">
-              <Button size="lg" variant="outline" className="h-12 px-8 text-base border-2 border-white text-white hover:bg-white/10">
-                Contact Us
-                <ArrowRight className="ml-2" size={18} />
-              </Button>
-            </Link>
+      <section className="bg-[linear-gradient(135deg,#0f172a,#0f766e_55%,#2563eb)] py-14">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+          <div className="rounded-[2rem] border border-white/10 bg-white/10 p-8 text-center backdrop-blur sm:p-10">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-200">Need assistance?</p>
+            <h2 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">Book, ask a question, or contact the Pune desk directly</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-200 sm:text-base">
+              The public site is now streamlined for appointments, hospital information, and admin-visible contact
+              messages without the oversized banner style you flagged.
+            </p>
+            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+              <AppointmentBookingModal
+                triggerLabel="Book Appointment"
+                triggerClassName="rounded-full bg-white px-6 text-slate-950 hover:bg-slate-100"
+              />
+              <Link href="/contact">
+                <Button variant="outline" className="w-full rounded-full border-white/40 bg-transparent px-6 text-white hover:bg-white/10 sm:w-auto">
+                  Contact Hospital
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>

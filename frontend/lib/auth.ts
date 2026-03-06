@@ -32,3 +32,30 @@ export function clearRole(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(ROLE_KEY);
 }
+
+function cookieAttrs(): string {
+  if (typeof window === "undefined") return "; path=/; SameSite=Lax";
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  return `; path=/; SameSite=Lax${secure}`;
+}
+
+export function setAuthCookies(token: string, role: UserRole): void {
+  if (typeof document === "undefined") return;
+  const attrs = cookieAttrs();
+  document.cookie = `${TOKEN_KEY}=${token}${attrs}`;
+  document.cookie = `${ROLE_KEY}=${role}${attrs}`;
+}
+
+export function clearAuthCookies(): void {
+  if (typeof document === "undefined") return;
+  const attrs = cookieAttrs();
+  document.cookie = `${TOKEN_KEY}=; Max-Age=0${attrs}`;
+  document.cookie = `${ROLE_KEY}=; Max-Age=0${attrs}`;
+}
+
+export function sanitizeInternalRedirect(redirect?: string | null): string | null {
+  if (!redirect) return null;
+  if (!redirect.startsWith("/")) return null;
+  if (redirect.startsWith("//")) return null;
+  return redirect;
+}

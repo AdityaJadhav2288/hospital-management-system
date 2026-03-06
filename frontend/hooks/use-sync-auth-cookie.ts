@@ -4,9 +4,11 @@ import { useEffect } from "react";
 import { useAuthStore } from "@/store/auth-store";
 
 export function useSyncAuthCookie() {
-  const { token, user } = useAuthStore();
+  const { hydrated, token, user } = useAuthStore();
 
   useEffect(() => {
+    if (!hydrated) return;
+
     const secure = typeof window !== "undefined" && window.location.protocol === "https:" ? "; Secure" : "";
     const attrs = `; path=/; SameSite=Lax${secure}`;
 
@@ -21,5 +23,5 @@ export function useSyncAuthCookie() {
     } else {
       document.cookie = `hms_user_role=; Max-Age=0${attrs}`;
     }
-  }, [token, user?.role]);
+  }, [hydrated, token, user?.role]);
 }

@@ -1,8 +1,27 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
+import { AuthService } from "../services/auth.service";
 import { PatientService } from "../services/patient.service";
 
 export class PatientController {
+  public static async register(req: Request, res: Response): Promise<void> {
+    const result = await AuthService.registerPatient(req.body);
+    res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: "Patient registered successfully",
+      data: result,
+    });
+  }
+
+  public static async login(req: Request, res: Response): Promise<void> {
+    const result = await AuthService.loginPatient(req.body);
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Patient login successful",
+      data: result,
+    });
+  }
+
   public static async getDashboard(req: Request, res: Response): Promise<void> {
     const metrics = await PatientService.getDashboardMetrics(req.user!.id);
     res.status(StatusCodes.OK).json({

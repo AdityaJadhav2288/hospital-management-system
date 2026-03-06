@@ -5,16 +5,17 @@ import { LoginForm } from "@/features/auth/login-form";
 
 interface RoleLoginPageProps {
   params: Promise<{ role: string }>;
+  searchParams: Promise<{ redirect?: string }>;
 }
 
 const roleCopy = {
   admin: {
     title: "Admin Login",
-    description: "Manage doctors, patients, appointments, blood bank, and hospital analytics.",
+    description: "Sign in with the fixed hospital admin account to manage doctors, patients, appointments, and analytics.",
   },
   doctor: {
     title: "Doctor Login",
-    description: "Access appointments, update patient records, and manage prescriptions.",
+    description: "Access your predefined doctor account to manage appointments, patient records, and prescriptions.",
   },
   patient: {
     title: "Patient Login",
@@ -22,8 +23,9 @@ const roleCopy = {
   },
 } as const;
 
-export default async function RoleLoginPage({ params }: RoleLoginPageProps) {
+export default async function RoleLoginPage({ params, searchParams }: RoleLoginPageProps) {
   const { role } = await params;
+  const { redirect } = await searchParams;
 
   if (role !== "admin" && role !== "doctor" && role !== "patient") {
     notFound();
@@ -41,7 +43,7 @@ export default async function RoleLoginPage({ params }: RoleLoginPageProps) {
             <CardTitle>Secure Sign In</CardTitle>
           </CardHeader>
           <CardContent>
-            <LoginForm initialRole={role} lockRole />
+            <LoginForm initialRole={role} lockRole redirectTo={redirect ?? null} />
           </CardContent>
         </Card>
       </div>

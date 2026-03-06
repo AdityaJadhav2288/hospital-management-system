@@ -4,7 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "@/features/auth/login-form";
 
-export default function LoginPage() {
+interface LoginPageProps {
+  searchParams: Promise<{ redirect?: string }>;
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const { redirect } = await searchParams;
+
   return (
     <PublicShell>
       <div className="mx-auto grid min-h-[calc(100vh-128px)] max-w-5xl items-center gap-6 px-4 py-12 md:grid-cols-2">
@@ -24,7 +30,7 @@ export default function LoginPage() {
             <CardTitle>Secure Sign In</CardTitle>
           </CardHeader>
           <CardContent>
-            <LoginForm />
+            <LoginForm redirectTo={redirect ?? null} />
           </CardContent>
         </Card>
       </div>

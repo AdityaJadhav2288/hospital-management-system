@@ -1,9 +1,20 @@
-import { AppointmentStatus, Role } from "@prisma/client";
+import { AppointmentStatus } from "@prisma/client";
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
+import { Role } from "../constants/role";
+import { AuthService } from "../services/auth.service";
 import { AdminService } from "../services/admin.service";
 
 export class AdminController {
+  public static async login(req: Request, res: Response): Promise<void> {
+    const result = await AuthService.loginAdmin(req.body);
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Admin login successful",
+      data: result,
+    });
+  }
+
   public static async getUsers(req: Request, res: Response): Promise<void> {
     const role = req.query.role as Role | undefined;
     const users = await AdminService.getUsers(role);
@@ -25,15 +36,35 @@ export class AdminController {
     res.status(StatusCodes.OK).json({ success: true, message: "User updated", data: user });
   }
 
+  public static async resetUserPassword(req: Request, res: Response): Promise<void> {
+    await AdminService.resetUserPassword(req.params.id, req.body);
+    res.status(StatusCodes.OK).json({ success: true, message: "Temporary password updated" });
+  }
+
   public static async deleteUser(req: Request, res: Response): Promise<void> {
     await AdminService.deleteUser(req.params.id);
     res.status(StatusCodes.OK).json({ success: true, message: "User deleted" });
+  }
+
+  public static async getDoctors(_req: Request, res: Response): Promise<void> {
+    const doctors = await AdminService.listDoctors();
+    res.status(StatusCodes.OK).json({ success: true, message: "Doctors fetched", data: doctors });
+  }
+
+  public static async getPatients(_req: Request, res: Response): Promise<void> {
+    const patients = await AdminService.listPatients();
+    res.status(StatusCodes.OK).json({ success: true, message: "Patients fetched", data: patients });
   }
 
   public static async getAppointments(req: Request, res: Response): Promise<void> {
     const status = req.query.status as AppointmentStatus | undefined;
     const appointments = await AdminService.listAppointments(status);
     res.status(StatusCodes.OK).json({ success: true, message: "Appointments fetched", data: appointments });
+  }
+
+  public static async getContactMessages(_req: Request, res: Response): Promise<void> {
+    const messages = await AdminService.listContactMessages();
+    res.status(StatusCodes.OK).json({ success: true, message: "Contact messages fetched", data: messages });
   }
 
   public static async getDashboard(_req: Request, res: Response): Promise<void> {

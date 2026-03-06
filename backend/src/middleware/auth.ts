@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../config/prisma";
+import { Role } from "../constants/role";
 import { verifyToken } from "../utils/jwt";
 
 export const protect = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -15,16 +16,25 @@ export const protect = async (req: Request, res: Response, next: NextFunction): 
 
   try {
     const decoded = verifyToken(token);
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-    });
+    const entity =
+      decoded.role === Role.ADMIN
+        ? await prisma.admin.findUnique({ where: { id: decoded.userId } })
+        : decoded.role === Role.DOCTOR
+          ? await prisma.doctor.findUnique({ where: { id: decoded.userId } })
+          : await prisma.patient.findUnique({ where: { id: decoded.userId } });
 
-    if (!user) {
+    if (!entity) {
       res.status(StatusCodes.UNAUTHORIZED).json({ success: false, message: "Invalid token user" });
       return;
     }
 
-    req.user = user;
+    req.user = {
+      id: entity.id,
+      name: entity.name,
+      email: entity.email,
+      role: decoded.role,
+    };
+
     next();
   } catch {
     res.status(StatusCodes.UNAUTHORIZED).json({ success: false, message: "Invalid or expired token" });

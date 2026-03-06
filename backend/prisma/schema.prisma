@@ -19,60 +19,68 @@ enum AppointmentStatus {
   CANCELLED
 }
 
-model User {
-  id             String          @id @default(cuid())
-  name           String
-  email          String          @unique
-  password       String
-  role           Role
-  createdAt      DateTime        @default(now())
-  doctorProfile  DoctorProfile?
-  patientProfile PatientProfile?
+model Admin {
+  id        String   @id @default(cuid())
+  name      String   @default("Hospital Administrator")
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@map("users")
+  @@map("admins")
 }
 
-model DoctorProfile {
-  id              String        @id @default(cuid())
-  userId          String        @unique
-  departmentId    String?
-  specialty       String
-  experienceYears Int
-  bio             String?
-  imageUrl        String?
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  department      Department?   @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  appointments    Appointment[]
-  prescriptions   Prescription[]
-  vitalsRecorded  Vitals[]
-
-  @@map("doctor_profiles")
-}
-
-model PatientProfile {
-  id           String        @id @default(cuid())
-  userId       String        @unique
-  phone        String
-  address      String
-  dateOfBirth  DateTime?
-  gender       String?
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  appointments Appointment[]
+model Doctor {
+  id            String         @id @default(cuid())
+  name          String
+  specialization String
+  email         String         @unique
+  password      String
+  experience    Int
+  phone         String
+  department    String
+  profileImage  String
+  bio           String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  appointments  Appointment[]
   prescriptions Prescription[]
-  vitals       Vitals[]
+  vitalsRecorded Vitals[]
 
-  @@map("patient_profiles")
+  @@index([specialization])
+  @@index([department])
+  @@map("doctors")
+}
+
+model Patient {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  password      String
+  phone         String
+  address       String         @default("Not provided")
+  dateOfBirth   DateTime?
+  gender        String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  appointments  Appointment[]
+  prescriptions Prescription[]
+  vitals        Vitals[]
+
+  @@map("patients")
 }
 
 model Appointment {
-  id        String            @id @default(cuid())
-  doctorId  String
-  patientId String
-  date      DateTime
-  reason    String?
-  status    AppointmentStatus @default(PENDING)
-  doctor    DoctorProfile     @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  patient   PatientProfile    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  id            String            @id @default(cuid())
+  patientId     String
+  doctorId      String
+  date          DateTime
+  status        AppointmentStatus @default(PENDING)
+  reason        String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  patient       Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor        Doctor            @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   prescriptions Prescription[]
 
   @@index([doctorId])
@@ -82,12 +90,11 @@ model Appointment {
 }
 
 model Department {
-  id          String          @id @default(cuid())
-  name        String          @unique
+  id          String   @id @default(cuid())
+  name        String   @unique
   description String
   icon        String?
-  createdAt   DateTime        @default(now())
-  doctors     DoctorProfile[]
+  createdAt   DateTime @default(now())
 
   @@map("departments")
 }
@@ -115,18 +122,31 @@ model BloodStock {
   @@map("blood_stocks")
 }
 
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("contact_messages")
+}
+
 model Prescription {
-  id            String         @id @default(cuid())
+  id            String       @id @default(cuid())
   doctorId      String
   patientId     String
   appointmentId String?
   medication    String
   dosage        String
   instructions  String
-  createdAt     DateTime       @default(now())
-  doctor        DoctorProfile  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  patient       PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  appointment   Appointment?   @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  createdAt     DateTime     @default(now())
+  doctor        Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient       Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
 
   @@index([doctorId])
   @@index([patientId])
@@ -134,17 +154,17 @@ model Prescription {
 }
 
 model Vitals {
-  id               String         @id @default(cuid())
-  patientId        String
+  id                 String   @id @default(cuid())
+  patientId          String
   recordedByDoctorId String?
-  heightCm         Float?
-  weightKg         Float?
-  bloodPressure    String?
-  pulseRate        Int?
-  notes            String?
-  recordedAt       DateTime       @default(now())
-  patient          PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  recordedByDoctor DoctorProfile? @relation(fields: [recordedByDoctorId], references: [id], onDelete: SetNull)
+  heightCm           Float?
+  weightKg           Float?
+  bloodPressure      String?
+  pulseRate          Int?
+  notes              String?
+  recordedAt         DateTime @default(now())
+  patient            Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  recordedByDoctor   Doctor?  @relation(fields: [recordedByDoctorId], references: [id], onDelete: SetNull)
 
   @@index([patientId, recordedAt])
   @@map("vitals")

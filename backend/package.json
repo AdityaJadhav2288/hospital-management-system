@@ -8,6 +8,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "db:check": "node scripts/check-prisma-connection.js",
+    "seed:doctors": "node scripts/seed-doctors.js",
+    "sync:demo-passwords": "node scripts/sync-demo-passwords.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
