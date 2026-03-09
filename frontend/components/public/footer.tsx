@@ -1,75 +1,139 @@
 "use client";
 
 import Link from "next/link";
-import { Ambulance, Clock3, Mail, MapPin, Phone, Stethoscope } from "lucide-react";
+import {
+  Ambulance,
+  Clock3,
+  Mail,
+  MapPin,
+  Phone,
+  Stethoscope,
+  HeartPulse,
+  Baby,
+  Brain,
+  Facebook,
+  Twitter,
+  Instagram
+} from "lucide-react";
 
 export function PublicFooter() {
   return (
-    <footer className="border-t border-slate-200 bg-slate-950 text-slate-200">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.3fr,0.8fr,1fr]">
+    <footer className="bg-slate-950 text-slate-300 border-t border-slate-800">
+      <div className="max-w-7xl mx-auto px-6 py-16 grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+
+        {/* Hospital Info */}
         <div>
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0f766e,#2563eb)] text-white">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white">
               <Stethoscope size={20} />
             </div>
+
             <div>
-              <p className="text-lg font-semibold text-white">MediCore Hospital</p>
-              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Pune Patient Care Network</p>
+              <h3 className="text-lg font-semibold text-white">
+                MediCore Hospital
+              </h3>
+              <p className="text-xs text-slate-400 tracking-widest uppercase">
+                Pune Healthcare Network
+              </p>
             </div>
           </div>
-          <p className="mt-5 max-w-xl text-sm leading-7 text-slate-400">
-            MediCore brings specialist consultation, emergency support, diagnostics, and digital appointment booking
-            into one responsive hospital experience for patients across Pune.
+
+          <p className="mt-4 text-sm text-slate-400 leading-6">
+            MediCore Hospital delivers advanced medical care, experienced
+            specialists, and modern diagnostics to provide trusted healthcare
+            services for families across Pune.
           </p>
-        </div>
 
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Quick Links</p>
-          <div className="mt-4 space-y-3 text-sm">
-            <Link href="/services" className="block transition hover:text-white">
-              Services
-            </Link>
-            <Link href="/doctors" className="block transition hover:text-white">
-              Doctors
-            </Link>
-            <Link href="/about" className="block transition hover:text-white">
-              About
-            </Link>
-            <Link href="/contact" className="block transition hover:text-white">
-              Contact
-            </Link>
+          {/* Social Icons */}
+          <div className="flex gap-4 mt-5">
+            <Facebook className="w-5 h-5 hover:text-white cursor-pointer" />
+            <Twitter className="w-5 h-5 hover:text-white cursor-pointer" />
+            <Instagram className="w-5 h-5 hover:text-white cursor-pointer" />
           </div>
         </div>
 
+        {/* Quick Links */}
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Pune Contact</p>
-          <div className="mt-4 space-y-4 text-sm text-slate-300">
-            <div className="flex items-start gap-3">
-              <MapPin className="mt-0.5 h-4 w-4 text-cyan-300" />
-              <span>MediCore Hospital, Baner Road, Pune, Maharashtra 411045</span>
+          <h4 className="text-sm font-semibold text-white uppercase tracking-wider">
+            Quick Links
+          </h4>
+
+          <div className="mt-4 space-y-3 text-sm">
+            <Link href="/" className="block hover:text-white">Home</Link>
+            <Link href="/services" className="block hover:text-white">Services</Link>
+            <Link href="/doctors" className="block hover:text-white">Doctors</Link>
+            <Link href="/about" className="block hover:text-white">About Us</Link>
+            <Link href="/contact" className="block hover:text-white">Contact</Link>
+          </div>
+        </div>
+
+        {/* Departments */}
+        <div>
+          <h4 className="text-sm font-semibold text-white uppercase tracking-wider">
+            Departments
+          </h4>
+
+          <div className="mt-4 space-y-3 text-sm">
+            <div className="flex items-center gap-2">
+              <HeartPulse size={16} /> Cardiology
             </div>
+
+            <div className="flex items-center gap-2">
+              <Brain size={16} /> Neurology
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Baby size={16} /> Pediatrics
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Stethoscope size={16} /> General Medicine
+            </div>
+          </div>
+        </div>
+
+        {/* Contact */}
+        <div>
+          <h4 className="text-sm font-semibold text-white uppercase tracking-wider">
+            Contact
+          </h4>
+
+          <div className="mt-4 space-y-4 text-sm">
+
+            <div className="flex items-start gap-3">
+              <MapPin size={16} className="text-cyan-400 mt-1" />
+              <span>
+                MediCore Hospital, Baner Road, Pune, Maharashtra 411045
+              </span>
+            </div>
+
             <div className="flex items-center gap-3">
-              <Phone className="h-4 w-4 text-cyan-300" />
+              <Phone size={16} className="text-cyan-400" />
               <span>+91 20 6767 9000</span>
             </div>
-            <div className="flex items-center gap-3">
-              <Ambulance className="h-4 w-4 text-rose-300" />
-              <span>Emergency: +91 20 6767 9111</span>
+
+            <div className="flex items-center gap-3 text-rose-400 font-semibold">
+              <Ambulance size={16} />
+              Emergency: +91 20 6767 9111
             </div>
+
             <div className="flex items-center gap-3">
-              <Mail className="h-4 w-4 text-cyan-300" />
+              <Mail size={16} className="text-cyan-400" />
               <span>care@medicorepune.com</span>
             </div>
+
             <div className="flex items-center gap-3">
-              <Clock3 className="h-4 w-4 text-cyan-300" />
-              <span>Open 24/7 for emergency and appointments</span>
+              <Clock3 size={16} className="text-cyan-400" />
+              <span>24/7 Emergency Services</span>
             </div>
+
           </div>
         </div>
       </div>
 
-      <div className="border-t border-slate-800 px-4 py-4 text-center text-xs text-slate-500 sm:px-6">
-        © {new Date().getFullYear()} MediCore Hospital, Pune. All rights reserved.
+      {/* Bottom Copyright */}
+      <div className="border-t border-slate-800 text-center text-xs text-slate-500 py-5">
+        © {new Date().getFullYear()} MediCore Hospital Pune. All Rights Reserved.
       </div>
     </footer>
   );

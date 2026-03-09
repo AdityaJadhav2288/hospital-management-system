@@ -83,10 +83,10 @@ export default function HomePage() {
 
             <div className="space-y-4">
               <h1 className="max-w-2xl text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
-                A cleaner and faster way to book hospital care in Pune
+                Trusted Healthcare and Advanced Medical Services in Pune
               </h1>
               <p className="max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
-                MediCore connects patients with predefined specialists and responsive booking.
+                 MediCore Hospital provides expert doctors, modern facilities, and compassionate care for every patient.
               </p>
             </div>
 
