@@ -2,23 +2,32 @@ import { prisma } from "../config/prisma";
 
 export class DoctorModel {
   public static findByUserId(userId: string) {
-    return prisma.doctorProfile.findUnique({ where: { userId } });
+    return prisma.doctor.findUnique({ where: { id: userId } });
   }
 
   public static listPublic(specialty?: string) {
-    return prisma.doctorProfile.findMany({
+    return prisma.doctor.findMany({
       where: specialty
         ? {
-            specialty: {
+            specialization: {
               contains: specialty,
               mode: "insensitive",
             },
           }
         : undefined,
-      orderBy: { user: { name: "asc" } },
-      include: {
-        user: { select: { id: true, name: true, email: true } },
-        department: { select: { id: true, name: true } },
+      orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        specialization: true,
+        experience: true,
+        phone: true,
+        department: true,
+        profileImage: true,
+        bio: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   }

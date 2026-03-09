@@ -2,11 +2,12 @@
   "name": "hospital-management-backend",
   "version": "1.0.0",
   "private": true,
-  "main": "dist/server.js",
+  "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
+    "build": "prisma generate && tsc",
+    "start": "node dist/index.js",
+    "postinstall": "prisma generate",
     "db:check": "node scripts/check-prisma-connection.js",
     "seed:doctors": "node scripts/seed-doctors.js",
     "sync:demo-passwords": "node scripts/sync-demo-passwords.js",
@@ -16,7 +17,7 @@
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^6.17.1",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -26,6 +27,7 @@
     "http-status-codes": "^2.3.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
+    "prisma": "^6.17.1",
     "zod": "^4.1.5"
   },
   "devDependencies": {
@@ -35,7 +37,6 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
     "@types/node": "^22.19.13",
-    "prisma": "^5.22.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.2"
   }

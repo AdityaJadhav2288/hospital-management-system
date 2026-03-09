@@ -22,11 +22,27 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     }
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-    cache: "no-store",
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers,
+      cache: "no-store",
+    });
+  } catch (error) {
+    const baseUrlHint =
+      typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1"
+        ? "Set NEXT_PUBLIC_API_BASE_URL to your backend URL, for example https://your-backend.onrender.com/api/v1."
+        : "Make sure the backend server is running on http://localhost:5000.";
+
+    const message =
+      error instanceof Error && error.message
+        ? `${error.message}. ${baseUrlHint}`
+        : `Unable to reach the API. ${baseUrlHint}`;
+
+    throw new Error(message);
+  }
 
   const isJson = response.headers.get("content-type")?.includes("application/json");
   const payload = isJson ? ((await response.json()) as ApiResponse<T> | ErrorPayload) : null;
