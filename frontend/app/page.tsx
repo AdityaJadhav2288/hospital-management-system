@@ -169,7 +169,7 @@ export default function HomePage() {
 
       {/* DEPARTMENTS */}
 
-      <section className="bg-green-500 py-14 text-black">
+      <section className="bg-blue-200 py-14 text-black">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <h2 className="mb-6 text-3xl font-semibold">Departments</h2>
 
