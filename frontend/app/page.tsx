@@ -169,7 +169,7 @@ export default function HomePage() {
 
       {/* DEPARTMENTS */}
 
-      <section className="bg-slate-950 py-14 text-white">
+      <section className="bg-green-500 py-14 text-black">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <h2 className="mb-6 text-3xl font-semibold">Departments</h2>
 
@@ -177,7 +177,7 @@ export default function HomePage() {
             {featuredDepartments.map((department) => (
               <div
                 key={department?.id || crypto.randomUUID()}
-                className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm"
+                className="rounded-full border border-white/15 bg-white/90 px-4 py-2 text-sm"
               >
                 {department?.name || "Department"}
               </div>
