@@ -53,8 +53,8 @@ export default function DoctorPrescriptionsPage() {
                 required
               >
                 <option value="">Select patient</option>
-                {(patients || []).map((patient) => (
-                  <option key={patient.id} value={patient.id}>{patient.user.name}</option>
+                {(patients || []).filter(Boolean).map((patient) => (
+                  <option key={patient.id} value={patient.id}>{patient?.name || "Patient"}</option>
                 ))}
               </select>
             </div>
@@ -81,7 +81,7 @@ export default function DoctorPrescriptionsPage() {
         <CardHeader><CardTitle>Issued Prescriptions</CardTitle></CardHeader>
         <CardContent>
           <DataTable
-            rows={prescriptions || []}
+            rows={(prescriptions || []).filter(Boolean)}
             columns={[
               { key: "patientName", header: "Patient" },
               { key: "medication", header: "Medication" },

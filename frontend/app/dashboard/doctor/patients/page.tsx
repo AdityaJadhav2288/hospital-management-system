@@ -31,12 +31,12 @@ export default function DoctorPatientsPage() {
         <CardHeader><CardTitle>Patients</CardTitle></CardHeader>
         <CardContent>
           <DataTable
-            rows={(data || []).map((item) => ({
+            rows={(data || []).filter(Boolean).map((item) => ({
               id: item.id,
-              name: item.user.name,
-              email: item.user.email,
-              phone: item.phone,
-              address: item.address,
+              name: item?.name || "Patient",
+              email: item?.email || "",
+              phone: item?.phone || "",
+              address: item?.address || "",
               action: item.id,
             }))}
             columns={[

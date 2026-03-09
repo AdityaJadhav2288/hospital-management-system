@@ -1,14 +1,19 @@
 import { apiClient } from "@/services/api-client";
 
+interface ApiDoctorPatient {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+}
+
 export interface DoctorPatient {
   id: string;
+  name: string;
+  email: string;
   phone: string;
   address: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-  };
 }
 
 export interface DoctorPatientHistory {
@@ -60,7 +65,19 @@ export interface CreateVitalsPayload {
 }
 
 export const doctorPortalService = {
-  getPatients: (): Promise<DoctorPatient[]> => apiClient.get<DoctorPatient[]>("/doctor/patients"),
+  getPatients: async (): Promise<DoctorPatient[]> => {
+    const data = await apiClient.get<Array<ApiDoctorPatient | null>>("/doctor/patients");
+
+    return (data ?? [])
+      .filter((item): item is ApiDoctorPatient => Boolean(item))
+      .map((item) => ({
+        id: item.id,
+        name: item.name || "Patient",
+        email: item.email || "",
+        phone: item.phone || "",
+        address: item.address || "",
+      }));
+  },
 
   getPatientHistory: (patientId: string): Promise<DoctorPatientHistory> =>
     apiClient.get<DoctorPatientHistory>(`/doctor/patients/${patientId}/history`),
