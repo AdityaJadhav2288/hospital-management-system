@@ -48,6 +48,10 @@ interface ApiDoctorRecord {
   bio?: string | null;
 }
 
+function isDefinedDoctorRecord(item: ApiDoctorRecord | null): item is ApiDoctorRecord {
+  return Boolean(item);
+}
+
 function mapAppointment(item: ApiAppointment): Appointment {
   return {
     id: item.id,
@@ -127,7 +131,7 @@ export const appointmentsService = {
   },
 
   listDoctors: async (): Promise<Doctor[]> => {
-    const doctors = await apiClient.get<ApiDoctorRecord[]>("/doctors", { auth: false });
-    return doctors.map(mapDoctor);
+    const doctors = await apiClient.get<Array<ApiDoctorRecord | null>>("/doctors", { auth: false });
+    return (doctors ?? []).filter(isDefinedDoctorRecord).map((doctor) => mapDoctor(doctor));
   },
 };

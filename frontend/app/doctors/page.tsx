@@ -16,7 +16,7 @@ export default function DoctorsPage() {
     void execute(specialty || undefined);
   }, [execute, specialty]);
 
-  const doctors = useMemo(() => data || [], [data]);
+  const doctors = useMemo(() => (Array.isArray(data) ? data.filter(Boolean) : []), [data]);
 
   return (
     <PublicShell>
@@ -54,16 +54,16 @@ export default function DoctorsPage() {
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {doctors.map((doctor) => (
+            {doctors?.filter(Boolean).map((doctor) => (
               <DoctorCard
-                key={doctor.id}
-                id={doctor.id}
-                name={doctor.name}
-                specialization={doctor.specialization}
-                experienceYears={doctor.experienceYears}
-                department={doctor.department}
-                phone={doctor.phone}
-                email={doctor.email}
+                key={doctor?.id || `${doctor?.email || "doctor"}-${doctor?.name || "unknown"}`}
+                id={doctor?.id}
+                name={doctor?.name || "Doctor"}
+                specialization={doctor?.specialization || "General Specialist"}
+                experienceYears={doctor?.experienceYears ?? 0}
+                department={doctor?.department || ""}
+                phone={doctor?.phone || ""}
+                email={doctor?.email || ""}
                 onBook={(doctorId) => {
                   window.location.href = `/patient/appointments/book?doctorId=${encodeURIComponent(doctorId)}`;
                 }}

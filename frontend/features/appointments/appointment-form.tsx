@@ -19,13 +19,15 @@ interface AppointmentFormProps {
   onBooked?: () => void;
 }
 
-function getInitials(name: string) {
-  return name
+function getInitials(name?: string | null) {
+  const safeName = name?.trim() || "Doctor";
+
+  return safeName
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
+    .join("") || "DR";
 }
 
 export function AppointmentForm({ onBooked }: AppointmentFormProps) {
@@ -58,18 +60,18 @@ export function AppointmentForm({ onBooked }: AppointmentFormProps) {
   }, [preselectedDoctorId, setValue]);
 
   const filteredDoctors = useMemo(() => {
-    const rows = doctors || [];
+    const rows = Array.isArray(doctors) ? doctors.filter(Boolean) : [];
     if (!doctorSearch.trim()) return rows;
     const term = doctorSearch.toLowerCase();
     return rows.filter((doctor) =>
-      [doctor.name, doctor.specialization, doctor.department, doctor.phone, doctor.email]
+      [doctor?.name, doctor?.specialization, doctor?.department, doctor?.phone, doctor?.email]
         .filter(Boolean)
-        .some((value) => value!.toLowerCase().includes(term)),
+        .some((value) => String(value).toLowerCase().includes(term)),
     );
   }, [doctorSearch, doctors]);
 
   const selectedDoctor = useMemo(
-    () => (doctors || []).find((doctor) => doctor.id === selectedDoctorId),
+    () => (Array.isArray(doctors) ? doctors.filter(Boolean) : []).find((doctor) => doctor?.id === selectedDoctorId),
     [doctors, selectedDoctorId],
   );
 
@@ -114,12 +116,19 @@ export function AppointmentForm({ onBooked }: AppointmentFormProps) {
           ) : (
             <div className="max-h-[52vh] overflow-y-auto pr-1">
               <div className="grid gap-4 md:grid-cols-2">
-                {filteredDoctors.map((doctor) => {
-                  const isSelected = selectedDoctorId === doctor.id;
+                {filteredDoctors?.filter(Boolean).map((doctor) => {
+                  const isSelected = selectedDoctorId === doctor?.id;
+                  const safeDoctorId = doctor?.id || "";
+                  const safeDoctorName = doctor?.name || "Doctor";
+                  const safeSpecialization = doctor?.specialization || "General Specialist";
+                  const safeExperienceYears = doctor?.experienceYears ?? 0;
+                  const safeDepartment = doctor?.department || "";
+                  const safePhone = doctor?.phone || "";
+                  const safeEmail = doctor?.email || "";
 
                   return (
                     <div
-                      key={doctor.id}
+                      key={safeDoctorId || `${safeEmail}-${safeDoctorName}`}
                       className={cn(
                         "rounded-[1.5rem] border bg-white p-4 transition-all",
                         isSelected
@@ -130,11 +139,11 @@ export function AppointmentForm({ onBooked }: AppointmentFormProps) {
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3">
                           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-teal-600 text-sm font-semibold text-white">
-                            {getInitials(doctor.name)}
+                            {getInitials(safeDoctorName)}
                           </div>
                           <div>
-                            <p className="font-semibold text-slate-900">{doctor.name}</p>
-                            <p className="text-sm text-sky-700">{doctor.specialization}</p>
+                            <p className="font-semibold text-slate-900">{safeDoctorName}</p>
+                            <p className="text-sm text-sky-700">{safeSpecialization}</p>
                           </div>
                         </div>
 
@@ -149,19 +158,19 @@ export function AppointmentForm({ onBooked }: AppointmentFormProps) {
                       <div className="mt-4 grid gap-2 text-sm text-slate-600">
                         <div className="flex items-center gap-2">
                           <Stethoscope size={15} className="text-slate-400" />
-                          <span>{doctor.experienceYears} years experience</span>
+                          <span>{safeExperienceYears} years experience</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Building2 size={15} className="text-slate-400" />
-                          <span>{doctor.department}</span>
+                          <span>{safeDepartment}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Phone size={15} className="text-slate-400" />
-                          <span>{doctor.phone}</span>
+                          <span>{safePhone}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Mail size={15} className="text-slate-400" />
-                          <span className="truncate">{doctor.email}</span>
+                          <span className="truncate">{safeEmail}</span>
                         </div>
                       </div>
 
@@ -171,7 +180,10 @@ export function AppointmentForm({ onBooked }: AppointmentFormProps) {
                           size="sm"
                           variant={isSelected ? "outline" : "default"}
                           className="h-8 rounded-full px-4"
-                          onClick={() => setValue("doctorId", doctor.id, { shouldValidate: true, shouldDirty: true })}
+                          onClick={() =>
+                            safeDoctorId &&
+                            setValue("doctorId", safeDoctorId, { shouldValidate: true, shouldDirty: true })
+                          }
                         >
                           {isSelected ? "Selected" : "Book Appointment"}
                         </Button>
@@ -214,11 +226,11 @@ export function AppointmentForm({ onBooked }: AppointmentFormProps) {
           <p className="text-sm font-semibold text-slate-700">Selected Doctor</p>
           {selectedDoctor ? (
             <div className="mt-3 space-y-2 text-sm text-slate-600">
-              <p className="text-base font-semibold text-slate-900">{selectedDoctor.name}</p>
-              <p>{selectedDoctor.specialization}</p>
-              <p>{selectedDoctor.department}</p>
-              <p>{selectedDoctor.phone}</p>
-              <p className="truncate">{selectedDoctor.email}</p>
+              <p className="text-base font-semibold text-slate-900">{selectedDoctor?.name || "Doctor"}</p>
+              <p>{selectedDoctor?.specialization || "General Specialist"}</p>
+              <p>{selectedDoctor?.department || ""}</p>
+              <p>{selectedDoctor?.phone || ""}</p>
+              <p className="truncate">{selectedDoctor?.email || ""}</p>
             </div>
           ) : (
             <p className="mt-3 text-sm text-slate-500">Choose a doctor using the small button on the left card.</p>

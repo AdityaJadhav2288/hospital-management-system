@@ -10,6 +10,12 @@ interface HospitalStats {
   patientsServed: number;
 }
 
+function isDefinedDoctorRecord(
+  item: Parameters<typeof mapDoctor>[0] | null,
+): item is Parameters<typeof mapDoctor>[0] {
+  return Boolean(item);
+}
+
 function mapDoctor(item: {
   id: string;
   name: string;
@@ -37,8 +43,8 @@ function mapDoctor(item: {
 export const publicService = {
   getDoctors: async (specialty?: string): Promise<Doctor[]> => {
     const query = specialty ? `?specialty=${encodeURIComponent(specialty)}` : "";
-    const data = await apiClient.get<Array<Parameters<typeof mapDoctor>[0]>>(`/doctors${query}`, { auth: false });
-    return data.map(mapDoctor);
+    const data = await apiClient.get<Array<Parameters<typeof mapDoctor>[0] | null>>(`/doctors${query}`, { auth: false });
+    return (data ?? []).filter(isDefinedDoctorRecord).map((item) => mapDoctor(item));
   },
 
   getDepartments: (): Promise<Department[]> => apiClient.get<Department[]>("/public/departments", { auth: false }),

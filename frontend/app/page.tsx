@@ -43,8 +43,8 @@ export default function HomePage() {
     void loadStats();
   }, [loadDoctors, loadDepartments, loadStats]);
 
-  const featuredDoctors = (doctors || []).slice(0, 3);
-  const featuredDepartments = (departments || []).slice(0, 6);
+  const featuredDoctors = (Array.isArray(doctors) ? doctors.filter(Boolean) : []).slice(0, 3);
+  const featuredDepartments = (Array.isArray(departments) ? departments.filter(Boolean) : []).slice(0, 6);
 
   return (
     <PublicShell>
@@ -217,16 +217,16 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-5 lg:grid-cols-3">
-            {featuredDoctors.map((doctor) => (
+            {featuredDoctors?.filter(Boolean).map((doctor) => (
               <DoctorCard
-                key={doctor.id}
-                id={doctor.id}
-                name={doctor.name}
-                specialization={doctor.specialization}
-                experienceYears={doctor.experienceYears}
-                department={doctor.department}
-                email={doctor.email}
-                phone={doctor.phone}
+                key={doctor?.id || `${doctor?.email || "doctor"}-${doctor?.name || "unknown"}`}
+                id={doctor?.id}
+                name={doctor?.name || "Doctor"}
+                specialization={doctor?.specialization || "General Specialist"}
+                experienceYears={doctor?.experienceYears ?? 0}
+                department={doctor?.department || ""}
+                email={doctor?.email || ""}
+                phone={doctor?.phone || ""}
                 onBook={(doctorId) => {
                   window.location.href = `/patient/appointments/book?doctorId=${encodeURIComponent(doctorId)}`;
                 }}
