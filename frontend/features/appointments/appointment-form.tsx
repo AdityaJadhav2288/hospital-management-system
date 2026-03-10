@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Building2, CheckCircle2, Mail, Phone, Search, Stethoscope } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -33,7 +33,10 @@ function getInitials(name?: string | null) {
 export function AppointmentForm({ onBooked }: AppointmentFormProps) {
   const searchParams = useSearchParams();
   const preselectedDoctorId = searchParams.get("doctorId");
+
   const [doctorSearch, setDoctorSearch] = useState("");
+
+  const appointmentDetailsRef = useRef<HTMLDivElement>(null);
 
   const {
     register,
@@ -46,7 +49,9 @@ export function AppointmentForm({ onBooked }: AppointmentFormProps) {
     resolver: zodResolverV4(appointmentSchema),
   });
 
-  const { data: doctors, execute: loadDoctors, loading: doctorsLoading } = useApi(appointmentsService.listDoctors);
+  const { data: doctors, execute: loadDoctors, loading: doctorsLoading } =
+    useApi(appointmentsService.listDoctors);
+
   const selectedDoctorId = watch("doctorId");
 
   useEffect(() => {
@@ -59,10 +64,19 @@ export function AppointmentForm({ onBooked }: AppointmentFormProps) {
     }
   }, [preselectedDoctorId, setValue]);
 
+  const scrollToAppointment = () => {
+    appointmentDetailsRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   const filteredDoctors = useMemo(() => {
     const rows = Array.isArray(doctors) ? doctors.filter(Boolean) : [];
     if (!doctorSearch.trim()) return rows;
+
     const term = doctorSearch.toLowerCase();
+
     return rows.filter((doctor) =>
       [doctor?.name, doctor?.specialization, doctor?.department, doctor?.phone, doctor?.email]
         .filter(Boolean)
@@ -84,108 +98,101 @@ export function AppointmentForm({ onBooked }: AppointmentFormProps) {
   };
 
   return (
-    <form className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.8fr)]" onSubmit={handleSubmit(submit)}>
+    <form
+      className="w-full grid gap-4 md:gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.8fr)]"
+      onSubmit={handleSubmit(submit)}
+    >
       <input type="hidden" {...register("doctorId")} />
 
-      <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+      {/* Doctor Selection */}
+      <div className="rounded-lg md:rounded-[1.75rem] border border-slate-200 bg-white p-4 md:p-5 shadow-sm">
         <div className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+
+          {/* Header */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+            <div className="flex-1">
               <h3 className="text-lg font-semibold text-slate-900">Choose your doctor</h3>
-              <p className="text-sm text-slate-500">
-                Select from the hospital’s predefined specialist roster.
-              </p>
+              <p className="text-sm text-slate-500">Select from hospital specialists</p>
             </div>
-            <div className="relative w-full sm:w-72">
-              <Search size={16} className="absolute left-3 top-3 text-slate-400" />
+
+            <div className="relative w-full sm:min-w-64">
+              <Search size={16} className="absolute left-3 top-2.5 text-slate-400" />
               <Input
                 value={doctorSearch}
-                onChange={(event) => setDoctorSearch(event.target.value)}
-                placeholder="Search doctor, specialty..."
+                onChange={(e) => setDoctorSearch(e.target.value)}
+                placeholder="Search doctor..."
                 className="pl-8"
               />
             </div>
           </div>
 
+          {/* Doctors List */}
           {doctorsLoading ? (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
               {Array.from({ length: 6 }).map((_, index) => (
-                <Skeleton key={index} className="h-48 rounded-[1.5rem]" />
+                <Skeleton key={index} className="h-40 rounded-xl" />
               ))}
             </div>
           ) : (
-            <div className="max-h-[52vh] overflow-y-auto pr-1">
-              <div className="grid gap-4 md:grid-cols-2">
-                {filteredDoctors?.filter(Boolean).map((doctor) => {
+            <div className="max-h-[45vh] overflow-y-auto pr-2">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                {filteredDoctors.map((doctor) => {
                   const isSelected = selectedDoctorId === doctor?.id;
-                  const safeDoctorId = doctor?.id || "";
-                  const safeDoctorName = doctor?.name || "Doctor";
-                  const safeSpecialization = doctor?.specialization || "General Specialist";
-                  const safeExperienceYears = doctor?.experienceYears ?? 0;
-                  const safeDepartment = doctor?.department || "";
-                  const safePhone = doctor?.phone || "";
-                  const safeEmail = doctor?.email || "";
 
                   return (
                     <div
-                      key={safeDoctorId || `${safeEmail}-${safeDoctorName}`}
+                      key={doctor.id}
                       className={cn(
-                        "rounded-[1.5rem] border bg-white p-4 transition-all",
+                        "rounded-xl border p-4 cursor-pointer transition",
                         isSelected
-                          ? "border-sky-500 ring-2 ring-sky-200 shadow-md"
-                          : "border-slate-200 hover:border-sky-300 hover:shadow-sm",
+                          ? "border-sky-500 ring-2 ring-sky-200"
+                          : "border-slate-200 hover:border-sky-300",
                       )}
+                      onClick={() => {
+                        setValue("doctorId", doctor.id, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+
+                        scrollToAppointment();
+                      }}
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-teal-600 text-sm font-semibold text-white">
-                            {getInitials(safeDoctorName)}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-slate-900">{safeDoctorName}</p>
-                            <p className="text-sm text-sky-700">{safeSpecialization}</p>
-                          </div>
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 flex items-center justify-center rounded-lg bg-sky-600 text-white font-semibold">
+                          {getInitials(doctor.name)}
                         </div>
 
-                        {isSelected ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-                            <CheckCircle2 size={14} />
-                            Selected
-                          </span>
-                        ) : null}
+                        <div className="flex-1">
+                          <p className="font-semibold">{doctor.name}</p>
+                          <p className="text-sm text-sky-700">{doctor.specialization}</p>
+                        </div>
+
+                        {isSelected && <CheckCircle2 className="text-green-500" size={18} />}
                       </div>
 
-                      <div className="mt-4 grid gap-2 text-sm text-slate-600">
-                        <div className="flex items-center gap-2">
-                          <Stethoscope size={15} className="text-slate-400" />
-                          <span>{safeExperienceYears} years experience</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Building2 size={15} className="text-slate-400" />
-                          <span>{safeDepartment}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Phone size={15} className="text-slate-400" />
-                          <span>{safePhone}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Mail size={15} className="text-slate-400" />
-                          <span className="truncate">{safeEmail}</span>
-                        </div>
+                      <div className="mt-3 space-y-1 text-sm text-slate-600">
+                        <p>{doctor.experienceYears} years experience</p>
+                        <p>{doctor.department}</p>
+                        <p>{doctor.phone}</p>
+                        <p className="text-xs">{doctor.email}</p>
                       </div>
 
-                      <div className="mt-4 flex justify-end">
+                      <div className="mt-3 flex justify-end">
                         <Button
                           type="button"
                           size="sm"
-                          variant={isSelected ? "outline" : "default"}
-                          className="h-8 rounded-full px-4"
-                          onClick={() =>
-                            safeDoctorId &&
-                            setValue("doctorId", safeDoctorId, { shouldValidate: true, shouldDirty: true })
-                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+
+                            setValue("doctorId", doctor.id, {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            });
+
+                            scrollToAppointment();
+                          }}
                         >
-                          {isSelected ? "Selected" : "Book Appointment"}
+                          {isSelected ? "Selected" : "Select"}
                         </Button>
                       </div>
                     </div>
@@ -195,51 +202,66 @@ export function AppointmentForm({ onBooked }: AppointmentFormProps) {
             </div>
           )}
 
-          {errors.doctorId ? <p className="text-xs text-red-500">{errors.doctorId.message}</p> : null}
-          {!doctorsLoading && filteredDoctors.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              No doctors matched your search.
-            </p>
-          ) : null}
+          {errors.doctorId && (
+            <p className="text-xs text-red-500 font-medium">{errors.doctorId.message}</p>
+          )}
         </div>
       </div>
 
-      <div className="space-y-5">
-        <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+      {/* Appointment Details */}
+      <div ref={appointmentDetailsRef} className="space-y-4">
+
+        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <h3 className="text-lg font-semibold text-slate-900">Appointment details</h3>
+
           <div className="mt-4 space-y-4">
+
             <div className="space-y-2">
-              <Label className="font-semibold text-gray-700">Date & Time</Label>
+              <Label>Date & Time</Label>
               <Input type="datetime-local" {...register("dateTime")} />
-              {errors.dateTime ? <p className="text-xs text-red-500">{errors.dateTime.message}</p> : null}
+              {errors.dateTime && (
+                <p className="text-xs text-red-500">{errors.dateTime.message}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label className="font-semibold text-gray-700">Reason</Label>
-              <Input {...register("reason")} placeholder="Describe symptoms or purpose" />
-              {errors.reason ? <p className="text-xs text-red-500">{errors.reason.message}</p> : null}
+              <Label>Reason</Label>
+              <Input {...register("reason")} placeholder="Describe symptoms" />
+              {errors.reason && (
+                <p className="text-xs text-red-500">{errors.reason.message}</p>
+              )}
             </div>
+
           </div>
         </div>
 
-        <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
+        {/* Selected Doctor Preview */}
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
           <p className="text-sm font-semibold text-slate-700">Selected Doctor</p>
+
           {selectedDoctor ? (
-            <div className="mt-3 space-y-2 text-sm text-slate-600">
-              <p className="text-base font-semibold text-slate-900">{selectedDoctor?.name || "Doctor"}</p>
-              <p>{selectedDoctor?.specialization || "General Specialist"}</p>
-              <p>{selectedDoctor?.department || ""}</p>
-              <p>{selectedDoctor?.phone || ""}</p>
-              <p className="truncate">{selectedDoctor?.email || ""}</p>
+            <div className="mt-3 space-y-1 text-sm text-slate-600">
+              <p className="font-semibold text-slate-900">{selectedDoctor.name}</p>
+              <p>{selectedDoctor.specialization}</p>
+              <p>{selectedDoctor.department}</p>
+              <p>{selectedDoctor.phone}</p>
+              <p className="text-xs">{selectedDoctor.email}</p>
             </div>
           ) : (
-            <p className="mt-3 text-sm text-slate-500">Choose a doctor using the small button on the left card.</p>
+            <p className="mt-3 text-sm text-slate-500">
+              Choose a doctor from the list to proceed.
+            </p>
           )}
         </div>
 
-        <Button className="h-11 w-full rounded-full" type="submit" disabled={isSubmitting}>
+        <Button
+          className="h-11 w-full rounded-full"
+          type="submit"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? "Submitting..." : "Confirm Appointment"}
         </Button>
+
       </div>
     </form>
   );

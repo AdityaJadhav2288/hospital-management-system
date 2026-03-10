@@ -9,6 +9,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Close sidebar when route changes
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);

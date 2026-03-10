@@ -35,9 +35,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} min-h-screen bg-slate-50 font-sans antialiased`}
       >
-        <Providers>
-          <main className="min-h-screen">{children}</main>
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
