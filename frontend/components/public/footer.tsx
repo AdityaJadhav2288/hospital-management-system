@@ -2,138 +2,115 @@
 
 import Link from "next/link";
 import {
-  Ambulance,
-  Clock3,
   Mail,
   MapPin,
   Phone,
   Stethoscope,
-  HeartPulse,
-  Baby,
-  Brain,
   Facebook,
   Twitter,
-  Instagram
+  Linkedin
 } from "lucide-react";
 
 export function PublicFooter() {
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="bg-slate-950 text-slate-300 border-t border-slate-800">
-      <div className="max-w-7xl mx-auto px-6 py-16 grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+    <footer className="bg-slate-900 text-slate-300 border-t border-slate-800">
+      {/* Main Footer */}
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        <div className="grid gap-8 md:grid-cols-3 lg:grid-cols-4">
 
-        {/* Hospital Info */}
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white">
-              <Stethoscope size={20} />
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-white">
+          {/* Hospital Info */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-cyan-600 text-white">
+                <Stethoscope size={20} />
+              </div>
+              <h2 className="text-base font-bold text-white">
                 MediCore Hospital
-              </h3>
-              <p className="text-xs text-slate-400 tracking-widest uppercase">
-                Pune Healthcare Network
-              </p>
+              </h2>
+            </div>
+            <p className="text-xs text-slate-400 leading-5 mb-3">
+              JCI Accredited • NABH Certified • ISO 9001:2015
+            </p>
+            <div className="flex gap-3">
+              <a href="#" className="text-slate-400 hover:text-blue-500 transition-colors">
+                <Facebook size={16} />
+              </a>
+              <a href="#" className="text-slate-400 hover:text-cyan-500 transition-colors">
+                <Twitter size={16} />
+              </a>
+              <a href="#" className="text-slate-400 hover:text-blue-600 transition-colors">
+                <Linkedin size={16} />
+              </a>
             </div>
           </div>
 
-          <p className="mt-4 text-sm text-slate-400 leading-6">
-            MediCore Hospital delivers advanced medical care, experienced
-            specialists, and modern diagnostics to provide trusted healthcare
-            services for families across Pune.
-          </p>
-
-          {/* Social Icons */}
-          <div className="flex gap-4 mt-5">
-            <Facebook className="w-5 h-5 hover:text-white cursor-pointer" />
-            <Twitter className="w-5 h-5 hover:text-white cursor-pointer" />
-            <Instagram className="w-5 h-5 hover:text-white cursor-pointer" />
+          {/* Quick Links */}
+          <div>
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-3">
+              Quick Links
+            </h3>
+            <ul className="space-y-2 text-xs">
+              <li><Link href="/" className="text-slate-400 hover:text-white transition-colors">Home</Link></li>
+              <li><Link href="/about" className="text-slate-400 hover:text-white transition-colors">About</Link></li>
+              <li><Link href="/doctors" className="text-slate-400 hover:text-white transition-colors">Doctors</Link></li>
+              <li><Link href="/contact" className="text-slate-400 hover:text-white transition-colors">Contact</Link></li>
+              <li><Link href="#" className="text-slate-400 hover:text-white transition-colors">Privacy Policy</Link></li>
+            </ul>
           </div>
-        </div>
 
-        {/* Quick Links */}
-        <div>
-          <h4 className="text-sm font-semibold text-white uppercase tracking-wider">
-            Quick Links
-          </h4>
-
-          <div className="mt-4 space-y-3 text-sm">
-            <Link href="/" className="block hover:text-white">Home</Link>
-            <Link href="/services" className="block hover:text-white">Services</Link>
-            <Link href="/doctors" className="block hover:text-white">Doctors</Link>
-            <Link href="/about" className="block hover:text-white">About Us</Link>
-            <Link href="/contact" className="block hover:text-white">Contact</Link>
+          {/* Services */}
+          <div>
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-3">
+              Services
+            </h3>
+            <ul className="space-y-2 text-xs">
+              <li><Link href="#" className="text-slate-400 hover:text-white transition-colors">Emergency</Link></li>
+              <li><Link href="#" className="text-slate-400 hover:text-white transition-colors">Cardiology</Link></li>
+              <li><Link href="#" className="text-slate-400 hover:text-white transition-colors">Neurology</Link></li>
+              <li><Link href="#" className="text-slate-400 hover:text-white transition-colors">Pediatrics</Link></li>
+              <li><Link href="#" className="text-slate-400 hover:text-white transition-colors">All Services</Link></li>
+            </ul>
           </div>
-        </div>
 
-        {/* Departments */}
-        <div>
-          <h4 className="text-sm font-semibold text-white uppercase tracking-wider">
-            Departments
-          </h4>
-
-          <div className="mt-4 space-y-3 text-sm">
-            <div className="flex items-center gap-2">
-              <HeartPulse size={16} /> Cardiology
+          {/* Contact */}
+          <div>
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-3">
+              Contact
+            </h3>
+            <div className="space-y-2 text-xs">
+              <div className="flex gap-2">
+                <MapPin size={14} className="text-cyan-500 flex-shrink-0 mt-0.5" />
+                <span className="text-slate-400">Baner Road, Pune, MH 411045</span>
+              </div>
+              <div className="flex gap-2">
+                <Phone size={14} className="text-cyan-500 flex-shrink-0" />
+                <span className="text-slate-400">+91 20 6767 9000</span>
+              </div>
+              <div className="flex gap-2">
+                <Phone size={14} className="text-red-500 flex-shrink-0" />
+                <span className="text-red-400 font-semibold">Emergency: +91 20 6767 9111</span>
+              </div>
+              <div className="flex gap-2">
+                <Mail size={14} className="text-cyan-500 flex-shrink-0" />
+                <span className="text-slate-400">care@medicorepune.com</span>
+              </div>
             </div>
-
-            <div className="flex items-center gap-2">
-              <Brain size={16} /> Neurology
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Baby size={16} /> Pediatrics
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Stethoscope size={16} /> General Medicine
-            </div>
-          </div>
-        </div>
-
-        {/* Contact */}
-        <div>
-          <h4 className="text-sm font-semibold text-white uppercase tracking-wider">
-            Contact
-          </h4>
-
-          <div className="mt-4 space-y-4 text-sm">
-
-            <div className="flex items-start gap-3">
-              <MapPin size={16} className="text-cyan-400 mt-1" />
-              <span>
-                MediCore Hospital, Baner Road, Pune, Maharashtra 411045
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Phone size={16} className="text-cyan-400" />
-              <span>+91 20 6767 9000</span>
-            </div>
-
-            <div className="flex items-center gap-3 text-rose-400 font-semibold">
-              <Ambulance size={16} />
-              Emergency: +91 20 6767 9111
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Mail size={16} className="text-cyan-400" />
-              <span>care@medicorepune.com</span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Clock3 size={16} className="text-cyan-400" />
-              <span>24/7 Emergency Services</span>
-            </div>
-
           </div>
         </div>
       </div>
 
-      {/* Bottom Copyright */}
-      <div className="border-t border-slate-800 text-center text-xs text-slate-500 py-5">
-        (c) {new Date().getFullYear()} MediCore Hospital Pune. All Rights Reserved.
+      {/* Bottom */}
+      <div className="border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-3 text-xs text-slate-500">
+          <div>
+            &copy; {currentYear} <span className="text-slate-400 font-semibold">MediCore Hospital Pune</span>. All rights reserved.
+          </div>
+          <div className="text-right">
+            24/7 Emergency Services Available | Reg. No: MH-DHS-000XXX
+          </div>
+        </div>
       </div>
     </footer>
   );

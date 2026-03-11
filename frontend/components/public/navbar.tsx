@@ -2,23 +2,23 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronDown, Menu, Stethoscope, X } from "lucide-react";
+import { ChevronDown, Menu, X, Heart, Stethoscope, Activity, Shield } from "lucide-react";
 import { AppointmentBookingModal } from "@/components/public/appointment-booking-modal";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const links = [
-  { href: "/", label: "Home" },
-  { href: "/services", label: "Services" },
-  { href: "/doctors", label: "Doctors" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
+  { href: "/", label: "Home", icon: Activity },
+  { href: "/services", label: "Services", icon: Shield },
+  { href: "/doctors", label: "Doctors", icon: Stethoscope },
+  { href: "/about", label: "About", icon: Heart },
+  { href: "/contact", label: "Contact", icon: Shield },
 ];
 
 const loginLinks = [
-  { href: "/login/patient", label: "Patient Login" },
-  { href: "/login/doctor", label: "Doctor Login" },
-  { href: "/login/admin", label: "Admin Login" },
+  { href: "/login/patient", label: "Patient Portal" },
+  { href: "/login/doctor", label: "Doctor Portal" },
+  { href: "/login/admin", label: "Admin Portal" },
 ];
 
 export function PublicNavbar() {
@@ -26,111 +26,160 @@ export function PublicNavbar() {
   const [loginDropdownOpen, setLoginDropdownOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/96 shadow-sm backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+    <header className="sticky top-0 z-50 bg-white shadow-sm border-b">
+
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+
+        {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0891b2,#2563eb)] text-white shadow-lg shadow-cyan-900/20">
-            <Stethoscope size={20} />
+
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">
+            <Heart size={20} />
           </div>
+
           <div>
-            <p className="text-[1.65rem] font-semibold leading-none tracking-tight text-slate-950">MediCore</p>
-            <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
-              Multi-Specialty Care
+            <p className="text-lg font-bold text-slate-900">MediCore</p>
+            <p className="text-xs text-slate-500 uppercase tracking-widest">
+              Healthcare
             </p>
           </div>
+
         </Link>
 
-        <nav className="hidden items-center rounded-full border border-slate-200 bg-slate-50/80 px-3 py-2 lg:flex">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-white hover:text-slate-950"
-            >
-              {link.label}
-            </Link>
-          ))}
+        {/* Desktop Navigation */}
+
+        <nav className="hidden md:flex items-center gap-6">
+
+          {links.map((link) => {
+            const Icon = link.icon;
+
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-600 transition"
+              >
+                <Icon size={16} />
+                {link.label}
+              </Link>
+            );
+          })}
+
         </nav>
 
-        <div className="hidden items-center gap-3 lg:flex">
+        {/* Desktop Right Buttons */}
+
+        <div className="hidden md:flex items-center gap-3">
+
+          {/* Login Dropdown */}
+
           <div className="relative">
+
             <Button
               variant="outline"
-              className="rounded-full border-slate-200 px-5 text-slate-700"
-              onClick={() => setLoginDropdownOpen((value) => !value)}
+              className="flex items-center gap-2"
+              onClick={() => setLoginDropdownOpen((v) => !v)}
             >
-              Login
-              <ChevronDown className={cn("h-4 w-4 transition-transform", loginDropdownOpen && "rotate-180")} />
+              Sign In
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 transition",
+                  loginDropdownOpen && "rotate-180"
+                )}
+              />
             </Button>
-            {loginDropdownOpen ? (
-              <div className="absolute right-0 top-12 w-52 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
+
+            {loginDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-52 rounded-lg border bg-white shadow-lg">
+
                 {loginLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="block rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+                    className="block px-4 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600"
                     onClick={() => setLoginDropdownOpen(false)}
                   >
                     {link.label}
                   </Link>
                 ))}
+
               </div>
-            ) : null}
+            )}
+
           </div>
+
+          {/* Book Appointment */}
+
           <AppointmentBookingModal
             triggerLabel="Book Appointment"
-            triggerClassName="rounded-full bg-slate-950 px-5 text-white hover:bg-slate-800"
+            triggerClassName="bg-blue-600 hover:bg-blue-700 text-white px-5 rounded-lg"
           />
+
         </div>
 
+        {/* Mobile Menu Button */}
+
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          className="rounded-full border-slate-200 lg:hidden"
-          onClick={() => setMobileOpen((value) => !value)}
-          aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
+          className="md:hidden"
+          onClick={() => setMobileOpen((v) => !v)}
         >
-          {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
         </Button>
+
       </div>
 
-      {mobileOpen ? (
-        <div className="border-t border-slate-200 bg-white lg:hidden">
-          <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-5 sm:px-6">
-            <nav className="space-y-2">
-              {links.map((link) => (
+      {/* Mobile Menu */}
+
+      {mobileOpen && (
+        <div className="md:hidden border-t bg-white">
+
+          <div className="px-4 py-4 space-y-3">
+
+            {/* Mobile Links */}
+
+            {links.map((link) => {
+              const Icon = link.icon;
+
+              return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="block rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-slate-700 hover:bg-blue-50"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <Icon size={18} />
+                  {link.label}
+                </Link>
+              );
+            })}
+
+            <div className="border-t pt-3 space-y-2">
+
+              {loginLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="block px-3 py-2 text-sm text-slate-600 hover:text-blue-600"
                   onClick={() => setMobileOpen(false)}
                 >
                   {link.label}
                 </Link>
               ))}
-            </nav>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Login Portals</p>
-              <div className="space-y-2">
-                {loginLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="block rounded-xl bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-950 hover:text-white"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
+
             </div>
+
             <AppointmentBookingModal
-              triggerClassName="w-full rounded-full bg-slate-950 text-white hover:bg-slate-800"
               triggerLabel="Book Appointment"
+              triggerClassName="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg mt-3"
             />
+
           </div>
+
         </div>
-      ) : null}
+      )}
+
     </header>
   );
 }
