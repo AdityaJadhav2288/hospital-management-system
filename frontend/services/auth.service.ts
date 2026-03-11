@@ -12,7 +12,6 @@ interface ApiAuthUser {
 interface ApiAuthPayload {
   token: string;
   user: ApiAuthUser;
-  demoPassword?: string;
 }
 
 const roleMap: Record<ApiAuthUser["role"], UserRole> = {
@@ -30,7 +29,6 @@ function toAuthResponse(payload: ApiAuthPayload): AuthResponse {
       email: payload.user.email,
       role: roleMap[payload.user.role],
     },
-    demoPassword: payload.demoPassword,
   };
 }
 

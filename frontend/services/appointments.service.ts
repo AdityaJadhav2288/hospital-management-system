@@ -17,12 +17,14 @@ interface ApiAppointment {
   date: string;
   reason?: string | null;
   status: AppointmentStatus;
+  visitNotes?: Array<{ id: string }>;
   doctor?: {
     id: string;
     name?: string;
     email?: string;
     specialization?: string;
     experience?: number;
+    phone?: string;
     department?: string;
     profileImage?: string;
     user?: { name?: string };
@@ -55,11 +57,18 @@ function isDefinedDoctorRecord(item: ApiDoctorRecord | null): item is ApiDoctorR
 function mapAppointment(item: ApiAppointment): Appointment {
   return {
     id: item.id,
+    patientId: item.patient?.id,
     patientName: item.patient?.name || item.patient?.user?.name || "Unknown Patient",
     doctorName: item.doctor?.name || item.doctor?.user?.name || "Assigned Doctor",
     dateTime: item.date,
     status: item.status,
     reason: item.reason || "Consultation",
+    doctorSpecialization: item.doctor?.specialization,
+    doctorDepartment: item.doctor?.department,
+    doctorPhone: item.doctor?.phone,
+    patientPhone: item.patient?.phone,
+    patientEmail: item.patient?.email,
+    hasVisitNotes: Boolean(item.visitNotes?.length),
   };
 }
 
@@ -117,9 +126,11 @@ export const appointmentsService = {
   },
 
   book: async (payload: AppointmentFormPayload): Promise<Appointment> => {
-    const created = await apiClient.post<ApiAppointment>("/patient/appointments", {
+    const created = await apiClient.post<ApiAppointment>("/appointments", {
       doctorId: payload.doctorId,
+      patientId: payload.patientId,
       date: payload.dateTime,
+      time: payload.time,
       reason: payload.reason,
     });
 
@@ -127,7 +138,23 @@ export const appointmentsService = {
   },
 
   updateStatus: async (appointmentId: string, status: Exclude<AppointmentStatus, "PENDING">): Promise<void> => {
-    await apiClient.patch(`/doctor/appointments/${appointmentId}/status`, { status });
+    const role = getRole();
+    const path =
+      role === "admin"
+        ? `/admin/appointments/${appointmentId}/status`
+        : `/doctor/appointments/${appointmentId}/status`;
+    await apiClient.patch(path, { status });
+  },
+
+  cancelOwn: async (appointmentId: string): Promise<void> => {
+    await apiClient.patch(`/patient/appointments/${appointmentId}/cancel`);
+  },
+
+  rescheduleOwn: async (appointmentId: string, payload: Pick<AppointmentFormPayload, "dateTime" | "reason">): Promise<void> => {
+    await apiClient.patch(`/patient/appointments/${appointmentId}/reschedule`, {
+      date: payload.dateTime,
+      reason: payload.reason,
+    });
   },
 
   listDoctors: async (): Promise<Doctor[]> => {

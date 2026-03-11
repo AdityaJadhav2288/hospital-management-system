@@ -12,6 +12,7 @@ import {
   listAppointmentsQuerySchema,
   resetUserPasswordSchema,
   scopedLoginSchema,
+  updateAppointmentStatusSchema,
   updateDepartmentSchema,
   updateHealthPackageSchema,
   updateUserByAdminSchema,
@@ -34,6 +35,11 @@ router.delete("/users/:id", asyncHandler(AdminController.deleteUser));
 router.get("/doctors", asyncHandler(AdminController.getDoctors));
 router.get("/patients", asyncHandler(AdminController.getPatients));
 router.get("/appointments", validateQuery(listAppointmentsQuerySchema), asyncHandler(AdminController.getAppointments));
+router.patch(
+  "/appointments/:id/status",
+  validateBody(updateAppointmentStatusSchema),
+  asyncHandler(AdminController.updateAppointmentStatus),
+);
 router.get("/contact-messages", asyncHandler(AdminController.getContactMessages));
 router.get("/dashboard", asyncHandler(AdminController.getDashboard));
 

@@ -20,6 +20,14 @@ class DoctorController {
             data: appointments,
         });
     }
+    static async getTodayAppointments(req, res) {
+        const appointments = await doctor_service_1.DoctorService.getTodayAppointments(req.user.id);
+        res.status(http_status_codes_1.StatusCodes.OK).json({
+            success: true,
+            message: "Today's appointments fetched",
+            data: appointments,
+        });
+    }
     static async updateAppointmentStatus(req, res) {
         const appointment = await doctor_service_1.DoctorService.updateAppointmentStatus(req.user.id, req.params.id, req.body.status);
         res.status(http_status_codes_1.StatusCodes.OK).json({
@@ -66,6 +74,14 @@ class DoctorController {
             success: true,
             message: "Vitals recorded",
             data: vitals,
+        });
+    }
+    static async createVisitNote(req, res) {
+        const note = await doctor_service_1.DoctorService.createVisitNote(req.user.id, req.body);
+        res.status(http_status_codes_1.StatusCodes.CREATED).json({
+            success: true,
+            message: "Visit note recorded",
+            data: note,
         });
     }
 }

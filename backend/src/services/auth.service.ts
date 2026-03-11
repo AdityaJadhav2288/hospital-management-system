@@ -3,7 +3,6 @@ import { StatusCodes } from "http-status-codes";
 import { prisma } from "../config/prisma";
 import { Role } from "../constants/role";
 import { AppError } from "../utils/app-error";
-import { buildDemoPassword } from "../utils/demo-password";
 import { signToken } from "../utils/jwt";
 import { comparePassword, hashPassword } from "../utils/password";
 import { LoginInput, PatientRegisterInput, ScopedLoginInput } from "../utils/validation";
@@ -85,23 +84,16 @@ export class AuthService {
   public static async registerPatient(payload: PatientRegisterInput) {
     await AuthService.ensureEmailIsAvailable(payload.email);
 
-    const createdPatient = await prisma.patient.create({
+    const patient = await prisma.patient.create({
       data: {
         name: payload.name,
         email: payload.email,
         password: await hashPassword(payload.password),
+        plainPassword: payload.password,
         phone: payload.phone,
         address: payload.address ?? "Not provided",
         dateOfBirth: payload.dateOfBirth,
         gender: payload.gender,
-      },
-    });
-
-    const demoPassword = buildDemoPassword(Role.PATIENT, createdPatient.id);
-    const patient = await prisma.patient.update({
-      where: { id: createdPatient.id },
-      data: {
-        password: await hashPassword(demoPassword),
       },
     });
 
@@ -110,7 +102,6 @@ export class AuthService {
     return {
       token: signToken({ userId: user.id, role: Role.PATIENT }),
       user,
-      demoPassword,
     };
   }
 

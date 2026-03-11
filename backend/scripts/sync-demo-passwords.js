@@ -10,10 +10,7 @@ function buildDemoPassword(role, userId) {
 }
 
 async function syncPasswords() {
-  const [doctors, patients] = await Promise.all([
-    prisma.doctor.findMany({ select: { id: true, email: true, name: true } }),
-    prisma.patient.findMany({ select: { id: true, email: true, name: true } }),
-  ]);
+  const doctors = await prisma.doctor.findMany({ select: { id: true, email: true, name: true } });
 
   for (const doctor of doctors) {
     const password = buildDemoPassword("DOCTOR", doctor.id);
@@ -23,18 +20,10 @@ async function syncPasswords() {
     });
   }
 
-  for (const patient of patients) {
-    const password = buildDemoPassword("PATIENT", patient.id);
-    await prisma.patient.update({
-      where: { id: patient.id },
-      data: { password: await bcrypt.hash(password, 10) },
-    });
-  }
-
-  console.log(`Synced demo passwords for ${doctors.length} doctors and ${patients.length} patients.`);
+  console.log(`Synced demo passwords for ${doctors.length} doctors.`);
   console.log("Password format:");
   console.log("Doctors: Doc@<last 6 chars of user id in uppercase>");
-  console.log("Patients: Pat@<last 6 chars of user id in uppercase>");
+  console.log("Patients are excluded so registration-chosen passwords are preserved.");
 }
 
 syncPasswords()

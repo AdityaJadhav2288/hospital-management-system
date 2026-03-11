@@ -49,7 +49,7 @@ class AdminService {
             role: role_1.Role.PATIENT,
             createdAt: patient.createdAt,
             updatedAt: patient.updatedAt,
-            demoPassword: (0, demo_password_1.buildDemoPassword)(role_1.Role.PATIENT, patient.id),
+            password: patient.plainPassword,
             doctorProfile: null,
             patientProfile: {
                 id: patient.id,
@@ -165,18 +165,14 @@ class AdminService {
                 name: payload.name,
                 email: payload.email,
                 password,
+                plainPassword: payload.password,
                 phone: payload.phone,
                 address: payload.address,
                 dateOfBirth: payload.dateOfBirth,
                 gender: payload.gender,
             },
         });
-        const demoPassword = (0, demo_password_1.buildDemoPassword)(role_1.Role.PATIENT, createdPatient.id);
-        const patient = await prisma_1.prisma.patient.update({
-            where: { id: createdPatient.id },
-            data: { password: await (0, password_1.hashPassword)(demoPassword) },
-        });
-        return AdminService.mapPatient(patient);
+        return AdminService.mapPatient(createdPatient);
     }
     static async updateUser(userId, payload) {
         const [doctor, patient, admin] = await Promise.all([
@@ -242,7 +238,10 @@ class AdminService {
         if (patient) {
             await prisma_1.prisma.patient.update({
                 where: { id: userId },
-                data: { password },
+                data: {
+                    password,
+                    plainPassword: payload.password,
+                },
             });
             return;
         }
@@ -286,25 +285,46 @@ class AdminService {
         });
     }
     static async listPatients() {
-        return prisma_1.prisma.patient.findMany({
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                phone: true,
-                address: true,
-                dateOfBirth: true,
-                gender: true,
-                createdAt: true,
-                updatedAt: true,
-            },
+        const patients = await prisma_1.prisma.patient.findMany({
             orderBy: { name: "asc" },
         });
+        return patients.map(AdminService.mapPatient);
     }
     static async listAppointments(status) {
         return prisma_1.prisma.appointment.findMany({
             where: status ? { status } : undefined,
             orderBy: { date: "asc" },
+            include: {
+                doctor: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        specialization: true,
+                        department: true,
+                        experience: true,
+                        profileImage: true,
+                    },
+                },
+                patient: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true,
+                    },
+                },
+            },
+        });
+    }
+    static async updateAppointmentStatus(appointmentId, status) {
+        const appointment = await prisma_1.prisma.appointment.findUnique({ where: { id: appointmentId } });
+        if (!appointment) {
+            throw new app_error_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "Appointment not found");
+        }
+        return prisma_1.prisma.appointment.update({
+            where: { id: appointmentId },
+            data: { status },
             include: {
                 doctor: {
                     select: {
@@ -348,6 +368,7 @@ class AdminService {
         const statusMap = {
             PENDING: 0,
             CONFIRMED: 0,
+            COMPLETED: 0,
             CANCELLED: 0,
         };
         appointmentStatusCounts.forEach((item) => {
@@ -357,6 +378,7 @@ class AdminService {
             totalDoctors,
             totalPatients,
             totalAppointments,
+            completedVisits: statusMap.COMPLETED,
             totalDepartments,
             bloodUnits: bloodRows.reduce((sum, row) => sum + row.units, 0),
             revenue: totalAppointments * 120,
@@ -368,6 +390,7 @@ class AdminService {
             appointmentSeries: [
                 { name: "PENDING", value: statusMap.PENDING },
                 { name: "CONFIRMED", value: statusMap.CONFIRMED },
+                { name: "COMPLETED", value: statusMap.COMPLETED },
                 { name: "CANCELLED", value: statusMap.CANCELLED },
             ],
         };

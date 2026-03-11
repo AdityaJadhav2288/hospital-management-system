@@ -67,7 +67,9 @@ export function DataTable<T extends object>({
           setPage(1);
         }}
         placeholder={searchPlaceholder}
+        className="h-11 rounded-2xl"
       />
+      <div className="overflow-hidden rounded-[1.5rem] border border-slate-200">
       <Table>
         <THead>
           <Tr>
@@ -79,7 +81,7 @@ export function DataTable<T extends object>({
         <TBody>
           {paged.length ? (
             paged.map((item, index) => (
-              <Tr key={getRowId ? getRowId(item, index) : index}>
+              <Tr key={getRowId ? getRowId(item, index) : index} className="transition-colors hover:bg-slate-50">
                 {columns.map((col) => {
                   const value = item[col.key];
                   return <Td key={col.key}>{col.render ? col.render(value, item) : toSearchString(value) || "-"}</Td>;
@@ -95,6 +97,7 @@ export function DataTable<T extends object>({
           )}
         </TBody>
       </Table>
+      </div>
       <div className="flex items-center justify-end gap-2">
         <Button
           variant="outline"

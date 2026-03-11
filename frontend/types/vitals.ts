@@ -4,5 +4,7 @@ export interface VitalsRecord {
   weightKg?: number | null;
   bloodPressure?: string | null;
   pulseRate?: number | null;
+  temperatureC?: number | null;
+  notes?: string | null;
   recordedAt: string;
 }

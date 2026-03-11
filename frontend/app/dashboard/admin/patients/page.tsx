@@ -28,12 +28,10 @@ function formatDate(value?: string) {
 }
 
 export default function AdminPatientsPage() {
-  const storageKey = "admin-patient-password-overrides";
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [passwordTarget, setPasswordTarget] = useState<Patient | null>(null);
-  const [passwordOverrides, setPasswordOverrides] = useState<Record<string, string>>({});
   const [temporaryPassword, setTemporaryPassword] = useState("");
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const { data, execute } = useApi(patientsService.list);
@@ -41,20 +39,6 @@ export default function AdminPatientsPage() {
   useEffect(() => {
     void execute();
   }, [execute]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const raw = window.localStorage.getItem(storageKey);
-    if (!raw) return;
-
-    try {
-      const parsed = JSON.parse(raw) as Record<string, string>;
-      setPasswordOverrides(parsed);
-    } catch {
-      window.localStorage.removeItem(storageKey);
-    }
-  }, []);
 
   const removePatient = async () => {
     if (!selectedPatient) return;
@@ -76,18 +60,11 @@ export default function AdminPatientsPage() {
     try {
       setIsResettingPassword(true);
       await patientsService.resetPassword(passwordTarget.id, temporaryPassword);
-      const nextOverrides = {
-        ...passwordOverrides,
-        [passwordTarget.id]: temporaryPassword,
-      };
-      setPasswordOverrides(nextOverrides);
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(storageKey, JSON.stringify(nextOverrides));
-      }
       toast.success(`Password updated for ${passwordTarget.name}`);
       setPasswordDialogOpen(false);
       setPasswordTarget(null);
       setTemporaryPassword("");
+      await execute();
     } finally {
       setIsResettingPassword(false);
     }
@@ -95,7 +72,6 @@ export default function AdminPatientsPage() {
 
   const rows = (data || []).map((item) => ({
     ...item,
-    demoPassword: passwordOverrides[item.id] || item.demoPassword,
     action: item,
   }));
 
@@ -106,8 +82,8 @@ export default function AdminPatientsPage() {
         <CardHeader className="space-y-2">
           <CardTitle className="text-base">Patient credentials</CardTitle>
           <CardDescription className="text-amber-900">
-            User IDs, profile data, and current project passwords are visible here. Reset Password lets you type a new
-            password and the admin table will remember it on this browser.
+            User IDs, profile data, and the password stored for each patient are visible here. Reset Password updates
+            both the login hash and the stored admin-visible patient password record.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -156,7 +132,11 @@ export default function AdminPatientsPage() {
                 header: "Updated",
                 render: (value) => formatDate(typeof value === "string" ? value : undefined),
               },
-              { key: "demoPassword", header: "Password" },
+              {
+                key: "password",
+                header: "Password",
+                render: (value) => (typeof value === "string" && value.trim() ? value : "-"),
+              },
               {
                 key: "action",
                 header: "Actions",
@@ -186,7 +166,7 @@ export default function AdminPatientsPage() {
                       className="whitespace-nowrap rounded-full px-4"
                       onClick={() => {
                         setPasswordTarget(value as Patient);
-                        setTemporaryPassword((value as Patient).demoPassword || "");
+                        setTemporaryPassword((value as Patient).password || "");
                         setPasswordDialogOpen(true);
                       }}
                     >
@@ -222,7 +202,7 @@ export default function AdminPatientsPage() {
               <p className="text-muted-foreground">{passwordTarget?.email || "-"}</p>
               <p className="mt-1 text-xs text-muted-foreground">User ID: {passwordTarget?.id || "-"}</p>
               <p className="mt-2 text-sm font-semibold text-primary">
-                Current password: {(passwordTarget && passwordOverrides[passwordTarget.id]) || passwordTarget?.demoPassword || "-"}
+                Current password: {passwordTarget?.password || "-"}
               </p>
             </div>
             <div className="space-y-2">

@@ -4,7 +4,7 @@ export interface Patient {
   email: string;
   phone: string;
   address?: string;
-  demoPassword?: string;
+  password?: string;
   dateOfBirth?: string;
   gender?: string;
   createdAt?: string;

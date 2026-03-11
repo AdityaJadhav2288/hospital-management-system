@@ -7,7 +7,9 @@ import { validateBody } from "../middleware/validate";
 import { asyncHandler } from "../utils/async-handler";
 import {
   bookAppointmentSchema,
+  createMedicalReportSchema,
   patientRegisterSchema,
+  rescheduleAppointmentSchema,
   scopedLoginSchema,
   updatePatientProfileSchema,
 } from "../utils/validation";
@@ -25,7 +27,17 @@ router.patch("/profile", validateBody(updatePatientProfileSchema), asyncHandler(
 router.get("/doctors", asyncHandler(PatientController.getDoctors));
 router.get("/appointments", asyncHandler(PatientController.getOwnAppointments));
 router.post("/appointments", validateBody(bookAppointmentSchema), asyncHandler(PatientController.bookAppointment));
+router.patch("/appointments/:id/cancel", asyncHandler(PatientController.cancelAppointment));
+router.patch(
+  "/appointments/:id/reschedule",
+  validateBody(rescheduleAppointmentSchema),
+  asyncHandler(PatientController.rescheduleAppointment),
+);
 router.get("/prescriptions", asyncHandler(PatientController.getPrescriptions));
 router.get("/vitals", asyncHandler(PatientController.getVitals));
+router.get("/history", asyncHandler(PatientController.getHistory));
+router.get("/reports", asyncHandler(PatientController.getReports));
+router.post("/reports", validateBody(createMedicalReportSchema), asyncHandler(PatientController.createReport));
+router.get("/reports/:id/download", asyncHandler(PatientController.downloadReport));
 
 export default router;

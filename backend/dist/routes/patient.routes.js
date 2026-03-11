@@ -18,6 +18,12 @@ router.patch("/profile", (0, validate_1.validateBody)(validation_1.updatePatient
 router.get("/doctors", (0, async_handler_1.asyncHandler)(patient_controller_1.PatientController.getDoctors));
 router.get("/appointments", (0, async_handler_1.asyncHandler)(patient_controller_1.PatientController.getOwnAppointments));
 router.post("/appointments", (0, validate_1.validateBody)(validation_1.bookAppointmentSchema), (0, async_handler_1.asyncHandler)(patient_controller_1.PatientController.bookAppointment));
+router.patch("/appointments/:id/cancel", (0, async_handler_1.asyncHandler)(patient_controller_1.PatientController.cancelAppointment));
+router.patch("/appointments/:id/reschedule", (0, validate_1.validateBody)(validation_1.rescheduleAppointmentSchema), (0, async_handler_1.asyncHandler)(patient_controller_1.PatientController.rescheduleAppointment));
 router.get("/prescriptions", (0, async_handler_1.asyncHandler)(patient_controller_1.PatientController.getPrescriptions));
 router.get("/vitals", (0, async_handler_1.asyncHandler)(patient_controller_1.PatientController.getVitals));
+router.get("/history", (0, async_handler_1.asyncHandler)(patient_controller_1.PatientController.getHistory));
+router.get("/reports", (0, async_handler_1.asyncHandler)(patient_controller_1.PatientController.getReports));
+router.post("/reports", (0, validate_1.validateBody)(validation_1.createMedicalReportSchema), (0, async_handler_1.asyncHandler)(patient_controller_1.PatientController.createReport));
+router.get("/reports/:id/download", (0, async_handler_1.asyncHandler)(patient_controller_1.PatientController.downloadReport));
 exports.default = router;

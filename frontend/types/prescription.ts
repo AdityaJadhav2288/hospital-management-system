@@ -6,4 +6,5 @@ export interface Prescription {
   dosage: string;
   instructions: string;
   issuedAt: string;
+  doctorSpecialization?: string;
 }

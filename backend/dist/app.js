@@ -22,7 +22,7 @@ exports.app.use((0, cors_1.default)({
     credentials: true,
 }));
 /* Body parser */
-exports.app.use(express_1.default.json({ limit: "1mb" }));
+exports.app.use(express_1.default.json({ limit: "10mb" }));
 exports.app.use(express_1.default.urlencoded({ extended: true }));
 /* Logger */
 exports.app.use((0, morgan_1.default)(env_1.env.NODE_ENV === "production" ? "combined" : "dev"));

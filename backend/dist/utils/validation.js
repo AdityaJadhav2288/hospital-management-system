@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createContactMessageSchema = exports.publicPackageQuerySchema = exports.publicDoctorQuerySchema = exports.updatePatientProfileSchema = exports.createVitalsSchema = exports.createPrescriptionSchema = exports.upsertBloodStockSchema = exports.updateHealthPackageSchema = exports.createHealthPackageSchema = exports.updateDepartmentSchema = exports.createDepartmentSchema = exports.listAppointmentsQuerySchema = exports.updateAppointmentStatusSchema = exports.bookAppointmentSchema = exports.resetUserPasswordSchema = exports.updateUserByAdminSchema = exports.createUserByAdminSchema = exports.scopedLoginSchema = exports.loginSchema = exports.registerSchema = exports.patientRegisterSchema = void 0;
+exports.createContactMessageSchema = exports.publicPackageQuerySchema = exports.publicDoctorQuerySchema = exports.updatePatientProfileSchema = exports.rescheduleAppointmentSchema = exports.createMedicalReportSchema = exports.createVisitNoteSchema = exports.createVitalsSchema = exports.createPrescriptionSchema = exports.upsertBloodStockSchema = exports.updateHealthPackageSchema = exports.createHealthPackageSchema = exports.updateDepartmentSchema = exports.createDepartmentSchema = exports.listAppointmentsQuerySchema = exports.updateAppointmentStatusSchema = exports.bookAppointmentSchema = exports.resetUserPasswordSchema = exports.updateUserByAdminSchema = exports.createUserByAdminSchema = exports.scopedLoginSchema = exports.loginSchema = exports.registerSchema = exports.patientRegisterSchema = void 0;
 const client_1 = require("@prisma/client");
 const zod_1 = require("zod");
 const role_1 = require("../constants/role");
@@ -102,7 +102,7 @@ exports.bookAppointmentSchema = zod_1.z.object({
     reason: zod_1.z.string().min(3).max(500).optional(),
 });
 exports.updateAppointmentStatusSchema = zod_1.z.object({
-    status: zod_1.z.enum([client_1.AppointmentStatus.CONFIRMED, client_1.AppointmentStatus.CANCELLED]),
+    status: zod_1.z.enum([client_1.AppointmentStatus.CONFIRMED, client_1.AppointmentStatus.COMPLETED, client_1.AppointmentStatus.CANCELLED]),
 });
 exports.listAppointmentsQuerySchema = zod_1.z.object({
     status: zod_1.z.nativeEnum(client_1.AppointmentStatus).optional(),
@@ -148,7 +148,28 @@ exports.createVitalsSchema = zod_1.z.object({
     weightKg: zod_1.z.coerce.number().positive().optional(),
     bloodPressure: zod_1.z.string().optional(),
     pulseRate: zod_1.z.coerce.number().int().positive().optional(),
+    temperatureC: zod_1.z.coerce.number().positive().max(45).optional(),
     notes: zod_1.z.string().max(2000).optional(),
+});
+exports.createVisitNoteSchema = zod_1.z.object({
+    patientId: zod_1.z.string().min(1),
+    appointmentId: zod_1.z.string().optional(),
+    diagnosis: zod_1.z.string().min(2).max(500),
+    notes: zod_1.z.string().max(4000).optional(),
+});
+exports.createMedicalReportSchema = zod_1.z.object({
+    title: zod_1.z.string().min(2).max(160),
+    category: zod_1.z.enum(["LAB_REPORT", "X_RAY", "MRI", "BLOOD_TEST", "OTHER"]),
+    fileName: zod_1.z.string().min(1).max(255),
+    mimeType: zod_1.z.string().min(3).max(120),
+    fileData: zod_1.z.string().min(20),
+    notes: zod_1.z.string().max(2000).optional(),
+});
+exports.rescheduleAppointmentSchema = zod_1.z.object({
+    date: zod_1.z.coerce.date().refine((value) => value.getTime() > Date.now(), {
+        message: "Appointment date must be in the future",
+    }),
+    reason: zod_1.z.string().min(3).max(500).optional(),
 });
 exports.updatePatientProfileSchema = zod_1.z.object({
     phone: zod_1.z.string().min(7).optional(),

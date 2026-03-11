@@ -14,7 +14,7 @@ interface HospitalStats {
 
 function mapDoctor(item: any): Doctor {
   return {
-    id: item?.id || crypto.randomUUID(),
+    id: item?.id || `doctor-${item?.email || item?.name || "unknown"}`,
     name: item?.name || "Doctor",
     email: item?.email || "",
     specialization: item?.specialization || "General Specialist",

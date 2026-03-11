@@ -2,7 +2,7 @@ import { AppointmentStatus } from "@prisma/client";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../config/prisma";
 import { AppError } from "../utils/app-error";
-import { CreatePrescriptionInput, CreateVitalsInput } from "../utils/validation";
+import { CreatePrescriptionInput, CreateVisitNoteInput, CreateVitalsInput } from "../utils/validation";
 
 export class DoctorService {
   public static async getDashboardMetrics(doctorId: string) {
@@ -18,7 +18,7 @@ export class DoctorService {
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
-    const [todaysAppointments, uniquePatients, pendingAppointments] = await Promise.all([
+    const [todaysAppointmentCount, uniquePatients, pendingAppointments, todaysAppointments] = await Promise.all([
       prisma.appointment.count({
         where: {
           doctorId: doctor.id,
@@ -36,12 +36,34 @@ export class DoctorService {
       prisma.appointment.count({
         where: { doctorId: doctor.id, status: AppointmentStatus.PENDING },
       }),
+      prisma.appointment.findMany({
+        where: {
+          doctorId: doctor.id,
+          date: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+        orderBy: { date: "asc" },
+        include: {
+          patient: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+              email: true,
+            },
+          },
+        },
+      }),
     ]);
 
     return {
-      todaysAppointments,
+      todaysAppointments: todaysAppointmentCount,
       totalPatients: uniquePatients.length,
+      pendingQueue: pendingAppointments,
       pendingPrescriptions: pendingAppointments,
+      todaysSchedule: todaysAppointments,
     };
   }
 
@@ -72,6 +94,53 @@ export class DoctorService {
             name: true,
             email: true,
             phone: true,
+            address: true,
+          },
+        },
+        visitNotes: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+  }
+
+  public static async getTodayAppointments(doctorId: string) {
+    const doctor = await prisma.doctor.findUnique({ where: { id: doctorId } });
+
+    if (!doctor) {
+      throw new AppError(StatusCodes.NOT_FOUND, "Doctor profile not found");
+    }
+
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    return prisma.appointment.findMany({
+      where: {
+        doctorId: doctor.id,
+        date: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+      orderBy: { date: "asc" },
+      include: {
+        patient: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            address: true,
+          },
+        },
+        visitNotes: {
+          select: {
+            id: true,
           },
         },
       },
@@ -166,7 +235,7 @@ export class DoctorService {
       throw new AppError(StatusCodes.FORBIDDEN, "Patient is not linked to this doctor");
     }
 
-    const [appointments, prescriptions, vitals] = await Promise.all([
+    const [appointments, prescriptions, vitals, visitNotes, reports] = await Promise.all([
       prisma.appointment.findMany({
         where: {
           doctorId: doctor.id,
@@ -205,7 +274,36 @@ export class DoctorService {
           weightKg: true,
           bloodPressure: true,
           pulseRate: true,
+          temperatureC: true,
+          notes: true,
           recordedAt: true,
+        },
+      }),
+      prisma.visitNote.findMany({
+        where: {
+          doctorId: doctor.id,
+          patientId: patient.id,
+        },
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          diagnosis: true,
+          notes: true,
+          createdAt: true,
+          appointmentId: true,
+        },
+      }),
+      prisma.medicalReport.findMany({
+        where: { patientId: patient.id },
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          title: true,
+          category: true,
+          fileName: true,
+          mimeType: true,
+          notes: true,
+          createdAt: true,
         },
       }),
     ]);
@@ -215,6 +313,8 @@ export class DoctorService {
       appointments,
       prescriptions,
       vitals,
+      visitNotes,
+      reports,
     };
   }
 
@@ -297,6 +397,39 @@ export class DoctorService {
         weightKg: payload.weightKg,
         bloodPressure: payload.bloodPressure,
         pulseRate: payload.pulseRate,
+        temperatureC: payload.temperatureC,
+        notes: payload.notes,
+      },
+    });
+  }
+
+  public static async createVisitNote(doctorId: string, payload: CreateVisitNoteInput) {
+    const [doctor, patient] = await Promise.all([
+      prisma.doctor.findUnique({ where: { id: doctorId } }),
+      prisma.patient.findUnique({ where: { id: payload.patientId } }),
+    ]);
+
+    if (!doctor) {
+      throw new AppError(StatusCodes.NOT_FOUND, "Doctor profile not found");
+    }
+
+    if (!patient) {
+      throw new AppError(StatusCodes.NOT_FOUND, "Patient not found");
+    }
+
+    if (payload.appointmentId) {
+      const appointment = await prisma.appointment.findUnique({ where: { id: payload.appointmentId } });
+      if (!appointment || appointment.doctorId !== doctor.id || appointment.patientId !== patient.id) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "Invalid appointment for visit note");
+      }
+    }
+
+    return prisma.visitNote.create({
+      data: {
+        patientId: patient.id,
+        doctorId: doctor.id,
+        appointmentId: payload.appointmentId,
+        diagnosis: payload.diagnosis,
         notes: payload.notes,
       },
     });

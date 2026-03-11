@@ -51,6 +51,10 @@ class AdminController {
         const appointments = await admin_service_1.AdminService.listAppointments(status);
         res.status(http_status_codes_1.StatusCodes.OK).json({ success: true, message: "Appointments fetched", data: appointments });
     }
+    static async updateAppointmentStatus(req, res) {
+        const appointment = await admin_service_1.AdminService.updateAppointmentStatus(req.params.id, req.body.status);
+        res.status(http_status_codes_1.StatusCodes.OK).json({ success: true, message: "Appointment updated", data: appointment });
+    }
     static async getContactMessages(_req, res) {
         const messages = await admin_service_1.AdminService.listContactMessages();
         res.status(http_status_codes_1.StatusCodes.OK).json({ success: true, message: "Contact messages fetched", data: messages });

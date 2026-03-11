@@ -68,12 +68,11 @@ export function PatientForm({ initial, onComplete }: PatientFormProps) {
       {/* Password (only when creating) */}
       {!initial ? (
         <div className="space-y-2 md:col-span-2">
-          <Label className="font-semibold text-gray-700">
-            Temporary Password
-          </Label>
+          <Label className="font-semibold text-gray-700">Password</Label>
           <Input
             type="password"
             {...register("password")}
+            required={!initial}
             placeholder="Minimum 8 characters"
           />
         </div>

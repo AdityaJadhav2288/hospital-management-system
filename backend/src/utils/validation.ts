@@ -109,7 +109,7 @@ export const bookAppointmentSchema = z.object({
 });
 
 export const updateAppointmentStatusSchema = z.object({
-  status: z.enum([AppointmentStatus.CONFIRMED, AppointmentStatus.CANCELLED]),
+  status: z.enum([AppointmentStatus.CONFIRMED, AppointmentStatus.COMPLETED, AppointmentStatus.CANCELLED]),
 });
 
 export const listAppointmentsQuerySchema = z.object({
@@ -157,13 +157,54 @@ export const createPrescriptionSchema = z.object({
   instructions: z.string().min(2),
 });
 
+const temperatureSchema = z.preprocess((value) => {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+
+  const numericValue = typeof value === "number" ? value : Number(value);
+  if (Number.isNaN(numericValue)) {
+    return value;
+  }
+
+  if (numericValue > 45 && numericValue <= 115) {
+    return Number((((numericValue - 32) * 5) / 9).toFixed(1));
+  }
+
+  return numericValue;
+}, z.number().positive().max(45).optional());
+
 export const createVitalsSchema = z.object({
   patientId: z.string().min(1),
   heightCm: z.coerce.number().positive().optional(),
   weightKg: z.coerce.number().positive().optional(),
   bloodPressure: z.string().optional(),
   pulseRate: z.coerce.number().int().positive().optional(),
+  temperatureC: temperatureSchema,
   notes: z.string().max(2000).optional(),
+});
+
+export const createVisitNoteSchema = z.object({
+  patientId: z.string().min(1),
+  appointmentId: z.string().optional(),
+  diagnosis: z.string().min(2).max(500),
+  notes: z.string().max(4000).optional(),
+});
+
+export const createMedicalReportSchema = z.object({
+  title: z.string().min(2).max(160),
+  category: z.enum(["LAB_REPORT", "X_RAY", "MRI", "BLOOD_TEST", "OTHER"]),
+  fileName: z.string().min(1).max(255),
+  mimeType: z.string().min(3).max(120),
+  fileData: z.string().min(20),
+  notes: z.string().max(2000).optional(),
+});
+
+export const rescheduleAppointmentSchema = z.object({
+  date: z.coerce.date().refine((value) => value.getTime() > Date.now(), {
+    message: "Appointment date must be in the future",
+  }),
+  reason: z.string().min(3).max(500).optional(),
 });
 
 export const updatePatientProfileSchema = z.object({
@@ -206,5 +247,8 @@ export type UpdateHealthPackageInput = z.infer<typeof updateHealthPackageSchema>
 export type UpsertBloodStockInput = z.infer<typeof upsertBloodStockSchema>;
 export type CreatePrescriptionInput = z.infer<typeof createPrescriptionSchema>;
 export type CreateVitalsInput = z.infer<typeof createVitalsSchema>;
+export type CreateVisitNoteInput = z.infer<typeof createVisitNoteSchema>;
+export type CreateMedicalReportInput = z.infer<typeof createMedicalReportSchema>;
+export type RescheduleAppointmentInput = z.infer<typeof rescheduleAppointmentSchema>;
 export type UpdatePatientProfileInput = z.infer<typeof updatePatientProfileSchema>;
 export type CreateContactMessageInput = z.infer<typeof createContactMessageSchema>;

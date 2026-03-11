@@ -14,10 +14,12 @@ router.post("/login", (0, validate_1.validateBody)(validation_1.scopedLoginSchem
 router.use(auth_1.protect, (0, authorize_1.authorize)(role_1.Role.DOCTOR));
 router.get("/dashboard", (0, async_handler_1.asyncHandler)(doctor_controller_1.DoctorController.getDashboard));
 router.get("/appointments", (0, async_handler_1.asyncHandler)(doctor_controller_1.DoctorController.getOwnAppointments));
+router.get("/appointments/today", (0, async_handler_1.asyncHandler)(doctor_controller_1.DoctorController.getTodayAppointments));
 router.patch("/appointments/:id/status", (0, validate_1.validateBody)(validation_1.updateAppointmentStatusSchema), (0, async_handler_1.asyncHandler)(doctor_controller_1.DoctorController.updateAppointmentStatus));
 router.get("/patients", (0, async_handler_1.asyncHandler)(doctor_controller_1.DoctorController.getPatients));
 router.get("/patients/:patientId/history", (0, async_handler_1.asyncHandler)(doctor_controller_1.DoctorController.getPatientHistory));
 router.get("/prescriptions", (0, async_handler_1.asyncHandler)(doctor_controller_1.DoctorController.getPrescriptions));
 router.post("/prescriptions", (0, validate_1.validateBody)(validation_1.createPrescriptionSchema), (0, async_handler_1.asyncHandler)(doctor_controller_1.DoctorController.createPrescription));
 router.post("/vitals", (0, validate_1.validateBody)(validation_1.createVitalsSchema), (0, async_handler_1.asyncHandler)(doctor_controller_1.DoctorController.createVitals));
+router.post("/visit-notes", (0, validate_1.validateBody)(validation_1.createVisitNoteSchema), (0, async_handler_1.asyncHandler)(doctor_controller_1.DoctorController.createVisitNote));
 exports.default = router;

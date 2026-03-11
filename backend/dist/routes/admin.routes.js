@@ -20,6 +20,7 @@ router.delete("/users/:id", (0, async_handler_1.asyncHandler)(admin_controller_1
 router.get("/doctors", (0, async_handler_1.asyncHandler)(admin_controller_1.AdminController.getDoctors));
 router.get("/patients", (0, async_handler_1.asyncHandler)(admin_controller_1.AdminController.getPatients));
 router.get("/appointments", (0, validate_1.validateQuery)(validation_1.listAppointmentsQuerySchema), (0, async_handler_1.asyncHandler)(admin_controller_1.AdminController.getAppointments));
+router.patch("/appointments/:id/status", (0, validate_1.validateBody)(validation_1.updateAppointmentStatusSchema), (0, async_handler_1.asyncHandler)(admin_controller_1.AdminController.updateAppointmentStatus));
 router.get("/contact-messages", (0, async_handler_1.asyncHandler)(admin_controller_1.AdminController.getContactMessages));
 router.get("/dashboard", (0, async_handler_1.asyncHandler)(admin_controller_1.AdminController.getDashboard));
 router.get("/departments", (0, async_handler_1.asyncHandler)(admin_controller_1.AdminController.getDepartments));

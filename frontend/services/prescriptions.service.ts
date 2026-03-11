@@ -33,6 +33,7 @@ export const prescriptionsService = {
         dosage: item.dosage || "N/A",
         instructions: item.instructions || "",
         issuedAt: item.createdAt || new Date().toISOString(),
+        doctorSpecialization: item.doctor?.name ? undefined : undefined,
       }));
   },
 };

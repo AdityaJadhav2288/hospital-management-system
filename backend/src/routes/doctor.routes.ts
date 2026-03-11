@@ -6,7 +6,13 @@ import { authorize } from "../middleware/authorize";
 import { protect } from "../middleware/auth";
 import { validateBody } from "../middleware/validate";
 import { asyncHandler } from "../utils/async-handler";
-import { createPrescriptionSchema, createVitalsSchema, scopedLoginSchema, updateAppointmentStatusSchema } from "../utils/validation";
+import {
+  createPrescriptionSchema,
+  createVisitNoteSchema,
+  createVitalsSchema,
+  scopedLoginSchema,
+  updateAppointmentStatusSchema,
+} from "../utils/validation";
 
 const router = Router();
 
@@ -16,6 +22,7 @@ router.use(protect, authorize(Role.DOCTOR));
 
 router.get("/dashboard", asyncHandler(DoctorController.getDashboard));
 router.get("/appointments", asyncHandler(DoctorController.getOwnAppointments));
+router.get("/appointments/today", asyncHandler(DoctorController.getTodayAppointments));
 router.patch(
   "/appointments/:id/status",
   validateBody(updateAppointmentStatusSchema),
@@ -26,5 +33,6 @@ router.get("/patients/:patientId/history", asyncHandler(DoctorController.getPati
 router.get("/prescriptions", asyncHandler(DoctorController.getPrescriptions));
 router.post("/prescriptions", validateBody(createPrescriptionSchema), asyncHandler(DoctorController.createPrescription));
 router.post("/vitals", validateBody(createVitalsSchema), asyncHandler(DoctorController.createVitals));
+router.post("/visit-notes", validateBody(createVisitNoteSchema), asyncHandler(DoctorController.createVisitNote));
 
 export default router;

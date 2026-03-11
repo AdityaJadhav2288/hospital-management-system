@@ -16,6 +16,7 @@ enum Role {
 enum AppointmentStatus {
   PENDING
   CONFIRMED
+  COMPLETED
   CANCELLED
 }
 
@@ -46,6 +47,8 @@ model Doctor {
   appointments  Appointment[]
   prescriptions Prescription[]
   vitalsRecorded Vitals[]
+  visitNotes    VisitNote[]
+  uploadedReports MedicalReport[] @relation("ReportUploader")
 
   @@index([specialization])
   @@index([department])
@@ -57,6 +60,7 @@ model Patient {
   name          String
   email         String         @unique
   password      String
+  plainPassword String?        @map("plain_password")
   phone         String
   address       String         @default("Not provided")
   dateOfBirth   DateTime?
@@ -66,6 +70,8 @@ model Patient {
   appointments  Appointment[]
   prescriptions Prescription[]
   vitals        Vitals[]
+  visitNotes    VisitNote[]
+  medicalReports MedicalReport[]
 
   @@map("patients")
 }
@@ -82,6 +88,7 @@ model Appointment {
   patient       Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
   doctor        Doctor            @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   prescriptions Prescription[]
+  visitNotes    VisitNote[]
 
   @@index([doctorId])
   @@index([patientId])
@@ -161,6 +168,7 @@ model Vitals {
   weightKg           Float?
   bloodPressure      String?
   pulseRate          Int?
+  temperatureC       Float?   @map("temperature_c")
   notes              String?
   recordedAt         DateTime @default(now())
   patient            Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
@@ -168,4 +176,39 @@ model Vitals {
 
   @@index([patientId, recordedAt])
   @@map("vitals")
+}
+
+model VisitNote {
+  id            String       @id @default(cuid())
+  patientId     String
+  doctorId      String
+  appointmentId String?
+  diagnosis     String
+  notes         String?
+  createdAt     DateTime     @default(now())
+  patient       Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor        Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([patientId, createdAt])
+  @@index([doctorId, createdAt])
+  @@map("visit_notes")
+}
+
+model MedicalReport {
+  id                 String   @id @default(cuid())
+  patientId          String
+  uploadedByDoctorId String?
+  title              String
+  category           String
+  fileName           String
+  mimeType           String
+  fileData           String
+  notes              String?
+  createdAt          DateTime @default(now())
+  patient            Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  uploadedByDoctor   Doctor?  @relation("ReportUploader", fields: [uploadedByDoctorId], references: [id], onDelete: SetNull)
+
+  @@index([patientId, createdAt])
+  @@map("medical_reports")
 }

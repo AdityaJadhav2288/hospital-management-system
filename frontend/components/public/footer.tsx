@@ -133,7 +133,7 @@ export function PublicFooter() {
 
       {/* Bottom Copyright */}
       <div className="border-t border-slate-800 text-center text-xs text-slate-500 py-5">
-        © {new Date().getFullYear()} MediCore Hospital Pune. All Rights Reserved.
+        (c) {new Date().getFullYear()} MediCore Hospital Pune. All Rights Reserved.
       </div>
     </footer>
   );

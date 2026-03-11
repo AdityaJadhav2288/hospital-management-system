@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/shared/page-header";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DataTable } from "@/components/tables/data-table";
-import { AppointmentForm } from "@/features/appointments/appointment-form";
 import { useApi } from "@/hooks/use-api";
 import { formatDateTime } from "@/lib/utils";
 import { appointmentsService } from "@/services/appointments.service";
@@ -38,7 +39,9 @@ export default function AppointmentsPage() {
             <CardTitle>Book Appointment</CardTitle>
           </CardHeader>
           <CardContent>
-            <AppointmentForm />
+            <Link href="/patient/appointments/book">
+              <Button className="w-full sm:w-auto">Open booking page</Button>
+            </Link>
           </CardContent>
         </Card>
       ) : null}

@@ -1,4 +1,5 @@
 import { apiClient } from "@/services/api-client";
+import type { MedicalReport } from "@/types/report";
 
 interface ApiDoctorPatient {
   id: string;
@@ -30,6 +31,8 @@ export interface DoctorPatientHistory {
     weightKg?: number | null;
     bloodPressure?: string | null;
     pulseRate?: number | null;
+    temperatureC?: number | null;
+    notes?: string | null;
     recordedAt: string;
   }>;
   prescriptions: Array<{
@@ -43,8 +46,16 @@ export interface DoctorPatientHistory {
     id: string;
     date: string;
     reason?: string | null;
-    status: "PENDING" | "CONFIRMED" | "CANCELLED";
+    status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
   }>;
+  visitNotes: Array<{
+    id: string;
+    diagnosis: string;
+    notes?: string | null;
+    createdAt: string;
+    appointmentId?: string | null;
+  }>;
+  reports: MedicalReport[];
 }
 
 export interface CreatePrescriptionPayload {
@@ -61,7 +72,30 @@ export interface CreateVitalsPayload {
   weightKg?: number;
   bloodPressure?: string;
   pulseRate?: number;
+  temperatureC?: number;
   notes?: string;
+}
+
+export interface CreateVisitNotePayload {
+  patientId: string;
+  appointmentId?: string;
+  diagnosis: string;
+  notes?: string;
+}
+
+export interface DoctorAppointmentQueueItem {
+  id: string;
+  date: string;
+  reason?: string | null;
+  status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
+  visitNotes: Array<{ id: string }>;
+  patient?: {
+    id: string;
+    name: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+  } | null;
 }
 
 export const doctorPortalService = {
@@ -82,7 +116,12 @@ export const doctorPortalService = {
   getPatientHistory: (patientId: string): Promise<DoctorPatientHistory> =>
     apiClient.get<DoctorPatientHistory>(`/doctor/patients/${patientId}/history`),
 
+  getTodayAppointments: (): Promise<DoctorAppointmentQueueItem[]> =>
+    apiClient.get<DoctorAppointmentQueueItem[]>("/doctor/appointments/today"),
+
   createPrescription: (payload: CreatePrescriptionPayload) => apiClient.post("/doctor/prescriptions", payload),
 
   createVitals: (payload: CreateVitalsPayload) => apiClient.post("/doctor/vitals", payload),
+
+  createVisitNote: (payload: CreateVisitNotePayload) => apiClient.post("/doctor/visit-notes", payload),
 };

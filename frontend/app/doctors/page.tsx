@@ -1,14 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { DoctorCard } from "@/components/DoctorCard";
 import { AppointmentBookingModal } from "@/components/public/appointment-booking-modal";
 import { PublicShell } from "@/components/public/public-shell";
 import { Input } from "@/components/ui/input";
 import { useApi } from "@/hooks/use-api";
+import { defaultDashboardByRole } from "@/lib/routes";
 import { publicService } from "@/services/public.service";
+import { useAuthStore } from "@/store/auth-store";
 
 export default function DoctorsPage() {
+  const router = useRouter();
+  const { user } = useAuthStore();
   const [specialty, setSpecialty] = useState("");
   const { data, execute, loading } = useApi(publicService.getDoctors);
 
@@ -33,6 +39,23 @@ export default function DoctorsPage() {
         email: doctor?.email || "",
       }));
   }, [data]);
+
+  const handleBookAppointment = (doctorId: string) => {
+    const bookingPath = `/patient/appointments/book?doctorId=${encodeURIComponent(doctorId)}`;
+
+    if (!user) {
+      router.push(`/login/patient?redirect=${encodeURIComponent(bookingPath)}`);
+      return;
+    }
+
+    if (user.role !== "patient") {
+      toast.info("Booking is available from a patient account.");
+      router.push(defaultDashboardByRole[user.role]);
+      return;
+    }
+
+    router.push(bookingPath);
+  };
 
   return (
     <PublicShell>
@@ -83,11 +106,7 @@ export default function DoctorsPage() {
               <DoctorCard
                 key={doctor.id}
                 {...doctor}
-                onBook={(doctorId) => {
-                  window.location.href = `/patient/appointments/book?doctorId=${encodeURIComponent(
-                    doctorId
-                  )}`;
-                }}
+                onBook={handleBookAppointment}
               />
             ))}
 

@@ -24,28 +24,6 @@
   --radius: 0.75rem;
 }
 
-/* DARK MODE */
-
-.dark {
-  --background: 222 47% 8%;
-  --foreground: 210 40% 98%;
-
-  --muted: 217 32% 17%;
-  --muted-foreground: 215 20% 70%;
-
-  --border: 217 32% 20%;
-
-  --card: 222 47% 10%;
-  --card-foreground: 210 40% 98%;
-
-  --primary: 173 70% 40%;
-  --primary-foreground: 0 0% 98%;
-
-  --success: 142 70% 40%;
-  --warning: 36 94% 60%;
-  --danger: 0 70% 57%;
-}
-
 /* GLOBAL BODY */
 
 body {

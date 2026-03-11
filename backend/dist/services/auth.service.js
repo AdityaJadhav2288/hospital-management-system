@@ -5,7 +5,6 @@ const http_status_codes_1 = require("http-status-codes");
 const prisma_1 = require("../config/prisma");
 const role_1 = require("../constants/role");
 const app_error_1 = require("../utils/app-error");
-const demo_password_1 = require("../utils/demo-password");
 const jwt_1 = require("../utils/jwt");
 const password_1 = require("../utils/password");
 const FIXED_ADMIN_EMAIL = "adityajadhav121248@gmail.com";
@@ -61,29 +60,22 @@ class AuthService {
     }
     static async registerPatient(payload) {
         await AuthService.ensureEmailIsAvailable(payload.email);
-        const createdPatient = await prisma_1.prisma.patient.create({
+        const patient = await prisma_1.prisma.patient.create({
             data: {
                 name: payload.name,
                 email: payload.email,
                 password: await (0, password_1.hashPassword)(payload.password),
+                plainPassword: payload.password,
                 phone: payload.phone,
                 address: payload.address ?? "Not provided",
                 dateOfBirth: payload.dateOfBirth,
                 gender: payload.gender,
             },
         });
-        const demoPassword = (0, demo_password_1.buildDemoPassword)(role_1.Role.PATIENT, createdPatient.id);
-        const patient = await prisma_1.prisma.patient.update({
-            where: { id: createdPatient.id },
-            data: {
-                password: await (0, password_1.hashPassword)(demoPassword),
-            },
-        });
         const user = AuthService.toAuthUser(patient, role_1.Role.PATIENT);
         return {
             token: (0, jwt_1.signToken)({ userId: user.id, role: role_1.Role.PATIENT }),
             user,
-            demoPassword,
         };
     }
     static async login(payload) {

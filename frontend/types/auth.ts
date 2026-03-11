@@ -10,7 +10,6 @@ export interface AuthUser {
 export interface AuthResponse {
   token: string;
   user: AuthUser;
-  demoPassword?: string;
 }
 
 export interface LoginPayload {

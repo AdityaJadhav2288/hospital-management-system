@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Menu, ShieldCheck } from "lucide-react";
-import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -40,7 +39,6 @@ export function Topbar({ setSidebarOpen }: TopbarProps) {
             Website
           </Button>
         </Link>
-        <ThemeToggle />
         <Button variant="outline" size="sm" onClick={logout}>
           Logout
         </Button>

@@ -62,6 +62,11 @@ export class AdminController {
     res.status(StatusCodes.OK).json({ success: true, message: "Appointments fetched", data: appointments });
   }
 
+  public static async updateAppointmentStatus(req: Request, res: Response): Promise<void> {
+    const appointment = await AdminService.updateAppointmentStatus(req.params.id, req.body.status);
+    res.status(StatusCodes.OK).json({ success: true, message: "Appointment updated", data: appointment });
+  }
+
   public static async getContactMessages(_req: Request, res: Response): Promise<void> {
     const messages = await AdminService.listContactMessages();
     res.status(StatusCodes.OK).json({ success: true, message: "Contact messages fetched", data: messages });

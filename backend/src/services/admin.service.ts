@@ -70,6 +70,7 @@ export class AdminService {
     id: string;
     name: string;
     email: string;
+    plainPassword: string | null;
     phone: string;
     address: string;
     dateOfBirth: Date | null;
@@ -84,7 +85,7 @@ export class AdminService {
       role: Role.PATIENT,
       createdAt: patient.createdAt,
       updatedAt: patient.updatedAt,
-      demoPassword: buildDemoPassword(Role.PATIENT, patient.id),
+      password: patient.plainPassword,
       doctorProfile: null,
       patientProfile: {
         id: patient.id,
@@ -211,6 +212,7 @@ export class AdminService {
         name: payload.name,
         email: payload.email,
         password,
+        plainPassword: payload.password,
         phone: payload.phone,
         address: payload.address!,
         dateOfBirth: payload.dateOfBirth,
@@ -218,13 +220,7 @@ export class AdminService {
       },
     });
 
-    const demoPassword = buildDemoPassword(Role.PATIENT, createdPatient.id);
-    const patient = await prisma.patient.update({
-      where: { id: createdPatient.id },
-      data: { password: await hashPassword(demoPassword) },
-    });
-
-    return AdminService.mapPatient(patient);
+    return AdminService.mapPatient(createdPatient);
   }
 
   public static async updateUser(userId: string, payload: UpdateUserByAdminInput) {
@@ -303,7 +299,10 @@ export class AdminService {
     if (patient) {
       await prisma.patient.update({
         where: { id: userId },
-        data: { password },
+        data: {
+          password,
+          plainPassword: payload.password,
+        },
       });
       return;
     }
@@ -355,26 +354,50 @@ export class AdminService {
   }
 
   public static async listPatients() {
-    return prisma.patient.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        address: true,
-        dateOfBirth: true,
-        gender: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+    const patients = await prisma.patient.findMany({
       orderBy: { name: "asc" },
     });
+
+    return patients.map(AdminService.mapPatient);
   }
 
   public static async listAppointments(status?: AppointmentStatus) {
     return prisma.appointment.findMany({
       where: status ? { status } : undefined,
       orderBy: { date: "asc" },
+      include: {
+        doctor: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            specialization: true,
+            department: true,
+            experience: true,
+            profileImage: true,
+          },
+        },
+        patient: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
+    });
+  }
+
+  public static async updateAppointmentStatus(appointmentId: string, status: AppointmentStatus) {
+    const appointment = await prisma.appointment.findUnique({ where: { id: appointmentId } });
+    if (!appointment) {
+      throw new AppError(StatusCodes.NOT_FOUND, "Appointment not found");
+    }
+
+    return prisma.appointment.update({
+      where: { id: appointmentId },
+      data: { status },
       include: {
         doctor: {
           select: {
@@ -422,6 +445,7 @@ export class AdminService {
     const statusMap: Record<AppointmentStatus, number> = {
       PENDING: 0,
       CONFIRMED: 0,
+      COMPLETED: 0,
       CANCELLED: 0,
     };
 
@@ -433,6 +457,7 @@ export class AdminService {
       totalDoctors,
       totalPatients,
       totalAppointments,
+      completedVisits: statusMap.COMPLETED,
       totalDepartments,
       bloodUnits: bloodRows.reduce((sum, row) => sum + row.units, 0),
       revenue: totalAppointments * 120,
@@ -444,6 +469,7 @@ export class AdminService {
       appointmentSeries: [
         { name: "PENDING", value: statusMap.PENDING },
         { name: "CONFIRMED", value: statusMap.CONFIRMED },
+        { name: "COMPLETED", value: statusMap.COMPLETED },
         { name: "CANCELLED", value: statusMap.CANCELLED },
       ],
     };

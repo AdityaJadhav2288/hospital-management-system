@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   BadgeCheck,
@@ -12,6 +13,7 @@ import {
   Stethoscope,
   UsersRound,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { DoctorCard } from "@/components/DoctorCard";
 import { AppointmentBookingModal } from "@/components/public/appointment-booking-modal";
@@ -21,7 +23,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PublicShell } from "@/components/public/public-shell";
 
 import { useApi } from "@/hooks/use-api";
+import { defaultDashboardByRole } from "@/lib/routes";
 import { publicService } from "@/services/public.service";
+import { useAuthStore } from "@/store/auth-store";
 
 const services = [
   {
@@ -47,6 +51,8 @@ const services = [
 ];
 
 export default function HomePage() {
+  const router = useRouter();
+  const { user } = useAuthStore();
   const { data: doctors, execute: loadDoctors } = useApi(publicService.getDoctors);
   const { data: departments, execute: loadDepartments } = useApi(
     publicService.getDepartments
@@ -68,6 +74,23 @@ export default function HomePage() {
   const featuredDepartments = Array.isArray(departments)
     ? departments.filter((d) => d && d.name).slice(0, 6)
     : [];
+
+  const handleBookAppointment = (doctorId: string) => {
+    const bookingPath = `/patient/appointments/book?doctorId=${encodeURIComponent(doctorId)}`;
+
+    if (!user) {
+      router.push(`/login/patient?redirect=${encodeURIComponent(bookingPath)}`);
+      return;
+    }
+
+    if (user.role !== "patient") {
+      toast.info("Booking is available from a patient account.");
+      router.push(defaultDashboardByRole[user.role]);
+      return;
+    }
+
+    router.push(bookingPath);
+  };
 
   return (
     <PublicShell>
@@ -176,7 +199,7 @@ export default function HomePage() {
           <div className="flex flex-wrap gap-3">
             {featuredDepartments.map((department) => (
               <div
-                key={department?.id || crypto.randomUUID()}
+                key={department?.id || department?.name || "department"}
                 className="rounded-full border border-white/15 bg-white/90 px-4 py-2 text-sm"
               >
                 {department?.name || "Department"}
@@ -198,7 +221,7 @@ export default function HomePage() {
           <div className="grid gap-5 lg:grid-cols-3">
             {featuredDoctors.map((doctor) => {
               const safeDoctor = {
-                id: doctor?.id || crypto.randomUUID(),
+                id: doctor?.id || `doctor-${doctor?.email || doctor?.name || "unknown"}`,
                 name: doctor?.name || "Doctor",
                 specialization: doctor?.specialization || "General Specialist",
                 experienceYears: doctor?.experienceYears ?? 0,
@@ -211,11 +234,7 @@ export default function HomePage() {
                 <DoctorCard
                   key={safeDoctor.id}
                   {...safeDoctor}
-                  onBook={(doctorId) => {
-                    window.location.href = `/patient/appointments/book?doctorId=${encodeURIComponent(
-                      doctorId
-                    )}`;
-                  }}
+                  onBook={handleBookAppointment}
                 />
               );
             })}

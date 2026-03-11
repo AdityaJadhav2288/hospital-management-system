@@ -24,8 +24,8 @@ export function RegisterForm() {
 
   const onSubmit = async (values: RegisterSchema) => {
     try {
-      const response = await registerUser(values);
-      toast.success(`Registration successful. Login password: ${response.demoPassword || "Check admin panel"}`);
+      await registerUser(values);
+      toast.success("Registration successful. You can now log in with your email and password.");
     } catch (error) {
       toast.error(resolveApiError(error));
     }
@@ -67,8 +67,8 @@ export function RegisterForm() {
       </div>
 
       <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-        Doctor and admin accounts are managed internally. Patient accounts use system-generated demo passwords so the
-        admin can review credentials in the dashboard.
+        Doctor and admin accounts are managed internally. Patients create their own password during registration, and
+        the admin dashboard shows the stored patient password record.
       </div>
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>

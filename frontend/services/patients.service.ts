@@ -8,7 +8,7 @@ interface ApiPatientUser {
   role?: "PATIENT";
   createdAt?: string;
   updatedAt?: string;
-  demoPassword?: string;
+  password?: string | null;
   patientProfile?: {
     id: string;
     phone: string;
@@ -35,7 +35,7 @@ function mapPatient(user: ApiPatientUser): Patient {
     email: user.email,
     phone: user.patientProfile?.phone || "",
     address: user.patientProfile?.address || "",
-    demoPassword: user.demoPassword,
+    password: user.password || undefined,
     dateOfBirth: user.patientProfile?.dateOfBirth || undefined,
     gender: user.patientProfile?.gender || undefined,
     createdAt: user.createdAt,
@@ -53,7 +53,7 @@ export const patientsService = {
     const created = await apiClient.post<ApiPatientUser>("/admin/users", {
       name: payload.name,
       email: payload.email,
-      password: payload.password || "patient123",
+      password: payload.password,
       role: "PATIENT",
       phone: payload.phone,
       address: payload.address,

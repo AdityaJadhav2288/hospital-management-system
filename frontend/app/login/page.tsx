@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect as navigateTo } from "next/navigation";
 import { PublicShell } from "@/components/public/public-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,18 @@ interface LoginPageProps {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { redirect } = await searchParams;
+
+  if (redirect?.startsWith("/patient/")) {
+    navigateTo(`/login/patient?redirect=${encodeURIComponent(redirect)}`);
+  }
+
+  if (redirect?.startsWith("/doctor/")) {
+    navigateTo(`/login/doctor?redirect=${encodeURIComponent(redirect)}`);
+  }
+
+  if (redirect?.startsWith("/admin/")) {
+    navigateTo(`/login/admin?redirect=${encodeURIComponent(redirect)}`);
+  }
 
   return (
     <PublicShell>

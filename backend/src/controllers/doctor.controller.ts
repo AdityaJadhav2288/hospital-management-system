@@ -21,6 +21,15 @@ export class DoctorController {
     });
   }
 
+  public static async getTodayAppointments(req: Request, res: Response): Promise<void> {
+    const appointments = await DoctorService.getTodayAppointments(req.user!.id);
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Today's appointments fetched",
+      data: appointments,
+    });
+  }
+
   public static async updateAppointmentStatus(req: Request, res: Response): Promise<void> {
     const appointment = await DoctorService.updateAppointmentStatus(
       req.user!.id,
@@ -77,6 +86,15 @@ export class DoctorController {
       success: true,
       message: "Vitals recorded",
       data: vitals,
+    });
+  }
+
+  public static async createVisitNote(req: Request, res: Response): Promise<void> {
+    const note = await DoctorService.createVisitNote(req.user!.id, req.body);
+    res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: "Visit note recorded",
+      data: note,
     });
   }
 }

@@ -54,6 +54,24 @@ export class PatientController {
     });
   }
 
+  public static async cancelAppointment(req: Request, res: Response): Promise<void> {
+    const appointment = await PatientService.cancelAppointment(req.user!.id, req.params.id);
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Appointment cancelled",
+      data: appointment,
+    });
+  }
+
+  public static async rescheduleAppointment(req: Request, res: Response): Promise<void> {
+    const appointment = await PatientService.rescheduleAppointment(req.user!.id, req.params.id, req.body);
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Appointment rescheduled",
+      data: appointment,
+    });
+  }
+
   public static async getProfile(req: Request, res: Response): Promise<void> {
     const profile = await PatientService.getOwnProfile(req.user!.id);
     res.status(StatusCodes.OK).json({ success: true, message: "Profile fetched", data: profile });
@@ -72,5 +90,25 @@ export class PatientController {
   public static async getVitals(req: Request, res: Response): Promise<void> {
     const vitals = await PatientService.listOwnVitals(req.user!.id);
     res.status(StatusCodes.OK).json({ success: true, message: "Vitals fetched", data: vitals });
+  }
+
+  public static async getHistory(req: Request, res: Response): Promise<void> {
+    const history = await PatientService.getOwnHistory(req.user!.id);
+    res.status(StatusCodes.OK).json({ success: true, message: "History fetched", data: history });
+  }
+
+  public static async getReports(req: Request, res: Response): Promise<void> {
+    const reports = await PatientService.listOwnReports(req.user!.id);
+    res.status(StatusCodes.OK).json({ success: true, message: "Reports fetched", data: reports });
+  }
+
+  public static async createReport(req: Request, res: Response): Promise<void> {
+    const report = await PatientService.createReport(req.user!.id, req.body);
+    res.status(StatusCodes.CREATED).json({ success: true, message: "Report uploaded", data: report });
+  }
+
+  public static async downloadReport(req: Request, res: Response): Promise<void> {
+    const report = await PatientService.getReportDownload(req.user!.id, req.params.id);
+    res.status(StatusCodes.OK).json({ success: true, message: "Report fetched", data: report });
   }
 }
