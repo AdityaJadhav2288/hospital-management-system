@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { redirect as navigateTo } from "next/navigation";
+import { RoleLoginButtons } from "@/components/auth/role-login-buttons";
 import { PublicShell } from "@/components/public/public-shell";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "@/features/auth/login-form";
 
@@ -13,15 +12,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { redirect } = await searchParams;
 
   if (redirect?.startsWith("/patient/")) {
-    navigateTo(`/login/patient?redirect=${encodeURIComponent(redirect)}`);
+    navigateTo(`/patient/login?redirect=${encodeURIComponent(redirect)}`);
   }
 
   if (redirect?.startsWith("/doctor/")) {
-    navigateTo(`/login/doctor?redirect=${encodeURIComponent(redirect)}`);
+    navigateTo(`/doctor/login?redirect=${encodeURIComponent(redirect)}`);
   }
 
   if (redirect?.startsWith("/admin/")) {
-    navigateTo(`/login/admin?redirect=${encodeURIComponent(redirect)}`);
+    navigateTo(`/admin/login?redirect=${encodeURIComponent(redirect)}`);
   }
 
   return (
@@ -32,11 +31,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <p className="text-sm text-muted-foreground">
             Select the correct role and access your secure dashboard.
           </p>
-          <div className="grid gap-2 sm:grid-cols-3">
-            <Link href="/login/admin"><Button className="w-full" variant="outline">Admin Login</Button></Link>
-            <Link href="/login/doctor"><Button className="w-full" variant="outline">Doctor Login</Button></Link>
-            <Link href="/login/patient"><Button className="w-full" variant="outline">Patient Login</Button></Link>
-          </div>
+          <RoleLoginButtons />
         </div>
         <Card className="w-full">
           <CardHeader>

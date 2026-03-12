@@ -6,7 +6,6 @@ import { env } from "./config/env";
 import { errorHandler } from "./middleware/error-handler";
 import { notFound } from "./middleware/not-found";
 import { apiRateLimiter } from "./middleware/rate-limit";
-import aiRoutes from "./routes/ai.routes";
 import apiRoutes from "./routes";
 
 export const app = express();
@@ -42,7 +41,7 @@ app.get("/health", (_req, res) => {
 
 /* API routes */
 app.use("/api/v1", apiRoutes);
-app.use("/api/ai", aiRoutes);
+app.use("/api", apiRoutes);
 
 /* 404 handler */
 app.use(notFound);

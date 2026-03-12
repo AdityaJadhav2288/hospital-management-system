@@ -7,7 +7,9 @@ function normalizeApiBaseUrl(value: string): string {
 }
 
 function resolveApiBaseUrl(): string {
-  const configuredBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+  const configuredBaseUrl =
+    process.env.NEXT_PUBLIC_API_URL?.trim() ||
+    process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
 
   if (configuredBaseUrl) {
     return normalizeApiBaseUrl(configuredBaseUrl);
@@ -22,7 +24,7 @@ function resolveApiBaseUrl(): string {
     return "http://localhost:5000/api/v1";
   }
 
-  return `${origin}/api/v1`;
+  return `${origin}/api`;
 }
 
 export const API_BASE_URL = resolveApiBaseUrl();

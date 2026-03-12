@@ -33,7 +33,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   } catch (error) {
     const baseUrlHint =
       typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1"
-        ? "Set NEXT_PUBLIC_API_BASE_URL to your backend URL, for example https://your-backend.onrender.com/api/v1."
+        ? "Set NEXT_PUBLIC_API_URL (or NEXT_PUBLIC_API_BASE_URL) to your backend URL, for example https://your-backend.onrender.com/api."
         : "Make sure the backend server is running on http://localhost:5000.";
 
     const message =

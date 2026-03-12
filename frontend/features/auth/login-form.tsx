@@ -43,9 +43,11 @@ export function LoginForm({ initialRole = "patient", lockRole = false, redirectT
 
   const onSubmit = async (values: LoginSchema) => {
     try {
+      console.info("[LoginForm] submit", { role: values.role, redirectTo });
       await login(values, redirectTo);
       toast.success("Login successful");
     } catch (error) {
+      console.error("[LoginForm] login failed", { role: values.role, redirectTo, error });
       toast.error(error instanceof Error ? error.message : "Unable to login");
     }
   };

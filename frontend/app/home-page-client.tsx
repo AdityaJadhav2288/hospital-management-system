@@ -97,7 +97,7 @@ export function HomePageClient() {
       {/* HERO */}
 
       <section className="overflow-hidden bg-[radial-gradient(circle_at_top_left,#cffafe,transparent_32%),linear-gradient(135deg,#f8fafc,#ffffff_45%,#eff6ff)]">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 pt-8 pb-8 sm:px-6 lg:grid-cols-[1.05fr,0.95fr]">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 pt-6 pb-6 sm:px-6 lg:grid-cols-[1.05fr,0.95fr]">
 
           <div className="flex flex-col justify-center gap-6">
 
@@ -186,18 +186,18 @@ export function HomePageClient() {
 
       {/* DEPARTMENTS */}
 
-      <section className="bg-blue-50 py-12">
+      <section className="bg-gradient-to-b from-slate-50 to-white py-12">
 
         <div className="mx-auto max-w-7xl px-4">
 
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-slate-900">
+            <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
               Our Medical Departments
             </h2>
 
-            <p className="text-slate-600">
-              Our hospital offers specialized departments with experienced doctors
-              and modern technology.
+            <p className="mt-3 text-base text-slate-600 max-w-2xl mx-auto">
+              Specialized care across multiple disciplines with experienced doctors
+              and state-of-the-art medical technology
             </p>
           </div>
 
@@ -206,36 +206,42 @@ export function HomePageClient() {
             {featuredDepartments.map((department) => (
               <Card
                 key={department?.id || department?.name}
-                className="rounded-xl border bg-white shadow-sm hover:shadow-lg transition"
+                className="rounded-xl border border-slate-200 bg-white shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 overflow-hidden group"
               >
-                <CardContent className="p-6 space-y-4">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+                
+                <CardContent className="p-6 space-y-5">
 
-                  <div className="flex justify-between items-center">
-                    <div className="bg-blue-100 p-3 rounded-lg">
-                      <Stethoscope className="h-6 w-6 text-blue-700" />
+                  <div className="flex justify-between items-start">
+                    <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-xl border border-blue-100 group-hover:from-blue-100 group-hover:to-cyan-100 transition-colors">
+                      <Stethoscope className="h-7 w-7 text-blue-600" />
                     </div>
 
-                    <Badge className="bg-blue-50 text-blue-700">
-                      Department
-                    </Badge>
+                    {department?._count?.doctors && (
+                      <Badge className="bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-700 border border-blue-200 font-semibold">
+                        {department._count.doctors} {department._count.doctors === 1 ? 'Doctor' : 'Doctors'}
+                      </Badge>
+                    )}
                   </div>
 
-                  <h3 className="text-lg font-semibold">
-                    {department?.name}
-                  </h3>
-
-                  <p className="text-sm text-slate-600">
-                    Expert doctors and modern diagnostic support for treatment.
-                  </p>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                      {department?.name}
+                    </h3>
+                    <p className="mt-2 text-sm text-slate-600 leading-relaxed line-clamp-2">
+                      {department?.description || 'Expert doctors and modern diagnostic support for specialized treatment.'}
+                    </p>
+                  </div>
 
                   <Link
                     href={`/doctors?department=${encodeURIComponent(
                       department?.name || ""
                     )}`}
+                    className="block"
                   >
                     <Button
                       variant="outline"
-                      className="w-full rounded-full"
+                      className="w-full rounded-lg border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-400 font-semibold transition-all"
                     >
                       View Doctors
                       <ArrowRight className="ml-2 h-4 w-4" />
@@ -253,39 +259,50 @@ export function HomePageClient() {
 
       {/* SERVICES */}
 
-      <section className="bg-white py-12">
+      <section className="bg-gradient-to-b from-white via-slate-50 to-white py-12">
 
         <div className="mx-auto max-w-7xl px-4">
 
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-slate-900">
+            <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
               Our Healthcare Services
             </h2>
 
-            <p className="text-slate-600">
-              Comprehensive healthcare services with modern equipment
-              and experienced specialists.
+            <p className="mt-3 text-base text-slate-600 max-w-2xl mx-auto">
+              Comprehensive medical services with cutting-edge technology
+              and highly skilled specialists dedicated to your wellbeing
             </p>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
 
-            {services.map((service) => (
-              <Card key={service.title} className="shadow-sm hover:shadow-lg">
+            {services.map((service, index) => (
+              <Card 
+                key={service.title} 
+                className="rounded-xl border border-slate-200 bg-white shadow-sm hover:shadow-xl hover:border-cyan-200 transition-all duration-300 overflow-hidden group"
+              >
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-500"></div>
 
-                <CardContent className="p-6 space-y-3">
+                <CardContent className="p-6 space-y-4">
 
-                  <div className="bg-cyan-100 p-3 rounded-lg w-fit">
-                    <HeartPulse className="h-6 w-6 text-cyan-700" />
+                  <div className="bg-gradient-to-br from-cyan-50 to-blue-50 p-4 rounded-xl border border-cyan-100 w-fit group-hover:from-cyan-100 group-hover:to-blue-100 transition-colors">
+                    <HeartPulse className="h-7 w-7 text-cyan-600 group-hover:scale-110 transition-transform" />
                   </div>
 
-                  <h3 className="font-semibold">
-                    {service.title}
-                  </h3>
+                  <div className="space-y-2">
+                    <h3 className="font-bold text-slate-900 text-base group-hover:text-cyan-600 transition-colors leading-tight">
+                      {service.title}
+                    </h3>
 
-                  <p className="text-sm text-slate-600">
-                    {service.description}
-                  </p>
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      {service.description}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2">
+                    <div className="h-1 w-1 rounded-full bg-cyan-400"></div>
+                    <span className="text-xs font-semibold text-cyan-600 uppercase tracking-wide">Expert Care</span>
+                  </div>
 
                 </CardContent>
 
@@ -299,11 +316,11 @@ export function HomePageClient() {
 
       {/* DOCTORS */}
 
-      <section className="bg-slate-50 py-12">
+      <section className="bg-slate-50 py-10">
 
         <div className="mx-auto max-w-7xl px-4">
 
-          <h2 className="mb-8 text-3xl font-semibold text-slate-900">
+          <h2 className="mb-6 text-3xl font-semibold text-slate-900">
             Choose a Specialist
           </h2>
 
