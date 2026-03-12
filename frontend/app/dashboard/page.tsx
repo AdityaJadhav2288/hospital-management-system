@@ -1,19 +1,12 @@
-"use client";
+import { Suspense } from "react";
+import { DashboardIndexPageClient } from "@/app/dashboard/dashboard-index-page-client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { defaultDashboardByRole } from "@/lib/routes";
-import { useAuthStore } from "@/store/auth-store";
+export const dynamic = "force-dynamic";
 
 export default function DashboardIndexPage() {
-  const router = useRouter();
-  const { user } = useAuthStore();
-
-  useEffect(() => {
-    if (user) {
-      router.replace(defaultDashboardByRole[user.role]);
-    }
-  }, [router, user]);
-
-  return <div className="text-sm text-muted-foreground">Redirecting...</div>;
+  return (
+    <Suspense fallback={<div className="text-sm text-muted-foreground">Redirecting...</div>}>
+      <DashboardIndexPageClient />
+    </Suspense>
+  );
 }

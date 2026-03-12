@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useEffect, useState } from "react";
 import { Eye, Search, XCircle } from "lucide-react";
 import { toast } from "sonner";
