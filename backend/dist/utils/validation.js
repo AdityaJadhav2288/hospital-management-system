@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createContactMessageSchema = exports.publicPackageQuerySchema = exports.publicDoctorQuerySchema = exports.updatePatientProfileSchema = exports.rescheduleAppointmentSchema = exports.createMedicalReportSchema = exports.createVisitNoteSchema = exports.createVitalsSchema = exports.createPrescriptionSchema = exports.upsertBloodStockSchema = exports.updateHealthPackageSchema = exports.createHealthPackageSchema = exports.updateDepartmentSchema = exports.createDepartmentSchema = exports.listAppointmentsQuerySchema = exports.updateAppointmentStatusSchema = exports.bookAppointmentSchema = exports.resetUserPasswordSchema = exports.updateUserByAdminSchema = exports.createUserByAdminSchema = exports.scopedLoginSchema = exports.loginSchema = exports.registerSchema = exports.patientRegisterSchema = void 0;
+exports.aiChatSchema = exports.createContactMessageSchema = exports.publicPackageQuerySchema = exports.publicDoctorQuerySchema = exports.updatePatientProfileSchema = exports.rescheduleAppointmentSchema = exports.createMedicalReportSchema = exports.createVisitNoteSchema = exports.createVitalsSchema = exports.createPrescriptionSchema = exports.upsertBloodStockSchema = exports.updateHealthPackageSchema = exports.createHealthPackageSchema = exports.updateDepartmentSchema = exports.createDepartmentSchema = exports.listAppointmentsQuerySchema = exports.updateAppointmentStatusSchema = exports.bookAppointmentSchema = exports.resetUserPasswordSchema = exports.updateUserByAdminSchema = exports.createUserByAdminSchema = exports.scopedLoginSchema = exports.loginSchema = exports.registerSchema = exports.patientRegisterSchema = void 0;
 const client_1 = require("@prisma/client");
 const zod_1 = require("zod");
 const role_1 = require("../constants/role");
@@ -142,13 +142,26 @@ exports.createPrescriptionSchema = zod_1.z.object({
     dosage: zod_1.z.string().min(1),
     instructions: zod_1.z.string().min(2),
 });
+const temperatureSchema = zod_1.z.preprocess((value) => {
+    if (value === undefined || value === null || value === "") {
+        return undefined;
+    }
+    const numericValue = typeof value === "number" ? value : Number(value);
+    if (Number.isNaN(numericValue)) {
+        return value;
+    }
+    if (numericValue > 45 && numericValue <= 115) {
+        return Number((((numericValue - 32) * 5) / 9).toFixed(1));
+    }
+    return numericValue;
+}, zod_1.z.number().positive().max(45).optional());
 exports.createVitalsSchema = zod_1.z.object({
     patientId: zod_1.z.string().min(1),
     heightCm: zod_1.z.coerce.number().positive().optional(),
     weightKg: zod_1.z.coerce.number().positive().optional(),
     bloodPressure: zod_1.z.string().optional(),
     pulseRate: zod_1.z.coerce.number().int().positive().optional(),
-    temperatureC: zod_1.z.coerce.number().positive().max(45).optional(),
+    temperatureC: temperatureSchema,
     notes: zod_1.z.string().max(2000).optional(),
 });
 exports.createVisitNoteSchema = zod_1.z.object({
@@ -189,4 +202,7 @@ exports.createContactMessageSchema = zod_1.z.object({
     phone: zod_1.z.string().min(7).optional(),
     subject: zod_1.z.string().min(2).max(120).optional(),
     message: zod_1.z.string().min(10).max(2000),
+});
+exports.aiChatSchema = zod_1.z.object({
+    message: zod_1.z.string().trim().min(1).max(2000),
 });

@@ -12,6 +12,7 @@ const env_1 = require("./config/env");
 const error_handler_1 = require("./middleware/error-handler");
 const not_found_1 = require("./middleware/not-found");
 const rate_limit_1 = require("./middleware/rate-limit");
+const ai_routes_1 = __importDefault(require("./routes/ai.routes"));
 const routes_1 = __importDefault(require("./routes"));
 exports.app = (0, express_1.default)();
 /* Security headers */
@@ -37,6 +38,7 @@ exports.app.get("/health", (_req, res) => {
 });
 /* API routes */
 exports.app.use("/api/v1", routes_1.default);
+exports.app.use("/api/ai", ai_routes_1.default);
 /* 404 handler */
 exports.app.use(not_found_1.notFound);
 /* Global error handler */

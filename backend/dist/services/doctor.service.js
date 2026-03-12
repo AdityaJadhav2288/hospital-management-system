@@ -57,6 +57,7 @@ class DoctorService {
         return {
             todaysAppointments: todaysAppointmentCount,
             totalPatients: uniquePatients.length,
+            pendingQueue: pendingAppointments,
             pendingPrescriptions: pendingAppointments,
             todaysSchedule: todaysAppointments,
         };

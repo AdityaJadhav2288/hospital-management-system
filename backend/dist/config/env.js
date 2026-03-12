@@ -16,6 +16,7 @@ const envSchema = zod_1.z.object({
     JWT_SECRET: zod_1.z.string().min(16),
     JWT_EXPIRES_IN: zod_1.z.string().default("7d"),
     CORS_ORIGIN: zod_1.z.string().default("http://localhost:3000"),
+    GEMINI_API_KEY: zod_1.z.string().min(1),
 });
 const parsed = envSchema.safeParse(process.env);
 if (!parsed.success) {

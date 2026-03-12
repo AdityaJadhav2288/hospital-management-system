@@ -1,5 +1,6 @@
 import { Router } from "express";
 import authRoutes from "./auth.routes";
+import aiRoutes from "./ai.routes";
 import adminRoutes from "./admin.routes";
 import appointmentsRoutes from "./appointments.routes";
 import authenticationRoutes from "./authentication.routes";
@@ -14,6 +15,7 @@ import publicRoutes from "./public.routes";
 const router = Router();
 
 router.use("/public", publicRoutes);
+router.use("/ai", aiRoutes);
 router.use("/auth", authRoutes);
 router.use("/admin", adminRoutes);
 router.use("/doctor", doctorRoutes);

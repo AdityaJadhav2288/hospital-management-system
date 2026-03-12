@@ -21,7 +21,11 @@ export function useAuth() {
 
   const login = async (payload: LoginPayload, redirect?: string | null) => {
     const response = await authService.login(payload);
-    const destination = sanitizeInternalRedirect(redirect) || defaultDashboardByRole[response.user.role];
+    const safeRedirect = sanitizeInternalRedirect(redirect);
+    const destination =
+      response.user.role === "patient" && safeRedirect?.startsWith("/patient/appointments")
+        ? defaultDashboardByRole.patient
+        : safeRedirect || defaultDashboardByRole[response.user.role];
 
     setToken(response.token);
     setRole(response.user.role);

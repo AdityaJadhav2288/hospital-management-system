@@ -230,6 +230,10 @@ export const createContactMessageSchema = z.object({
   message: z.string().min(10).max(2000),
 });
 
+export const aiChatSchema = z.object({
+  message: z.string().trim().min(1).max(2000),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type PatientRegisterInput = z.infer<typeof patientRegisterSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -252,3 +256,4 @@ export type CreateMedicalReportInput = z.infer<typeof createMedicalReportSchema>
 export type RescheduleAppointmentInput = z.infer<typeof rescheduleAppointmentSchema>;
 export type UpdatePatientProfileInput = z.infer<typeof updatePatientProfileSchema>;
 export type CreateContactMessageInput = z.infer<typeof createContactMessageSchema>;
+export type AiChatInput = z.infer<typeof aiChatSchema>;
