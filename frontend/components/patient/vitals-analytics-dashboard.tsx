@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode, type ReactElement } from "react";
 import {
   Activity,
   Droplets,
@@ -29,6 +29,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { PatientVitalRecord, VitalsRange } from "@/types/vitals";
 
+// ============================================================================
+// Chart Registration
+// ============================================================================
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -41,6 +45,10 @@ ChartJS.register(
   annotationPlugin,
 );
 
+// ============================================================================
+// Types
+// ============================================================================
+
 interface VitalsAnalyticsDashboardProps {
   records: PatientVitalRecord[];
   compact?: boolean;
@@ -52,6 +60,13 @@ type MetricPoint = {
   value: number;
 };
 
+type BloodPressurePoint = {
+  label: string;
+  isoDate: string;
+  systolic: number | null;
+  diastolic: number | null;
+};
+
 type RangeBand = {
   id: string;
   label: string;
@@ -60,13 +75,26 @@ type RangeBand = {
   tone: "green" | "yellow" | "red";
 };
 
-const rangeOptions: Array<{ value: VitalsRange; label: string }> = [
+type ToneStyle = {
+  bar: string;
+  line: string;
+  bg: string;
+  pill: string;
+};
+
+type ToneMap = Record<"green" | "yellow" | "red", ToneStyle>;
+
+// ============================================================================
+// Constants
+// ============================================================================
+
+const RANGE_OPTIONS: Array<{ value: VitalsRange; label: string }> = [
   { value: "today", label: "Today" },
   { value: "week", label: "Week" },
   { value: "month", label: "Month" },
 ];
 
-const toneStyles = {
+const TONE_STYLES: ToneMap = {
   green: {
     bar: "rgba(34, 197, 94, 0.75)",
     line: "#22c55e",
@@ -87,45 +115,70 @@ const toneStyles = {
   },
 };
 
-const bloodSugarBands: RangeBand[] = [
+const BLOOD_SUGAR_BANDS: RangeBand[] = [
   { id: "sugar-normal", label: "Normal", min: 70, max: 140, tone: "green" },
   { id: "sugar-warning", label: "Warning", min: 140, max: 200, tone: "yellow" },
   { id: "sugar-critical", label: "Critical", min: 200, max: 320, tone: "red" },
 ];
 
-const heartRateBands: RangeBand[] = [
+const HEART_RATE_BANDS: RangeBand[] = [
   { id: "heart-normal", label: "Normal", min: 60, max: 100, tone: "green" },
   { id: "heart-warning", label: "Warning", min: 100, max: 120, tone: "yellow" },
   { id: "heart-critical", label: "Critical", min: 120, max: 180, tone: "red" },
 ];
 
-const cholesterolBands: RangeBand[] = [
+const CHOLESTEROL_BANDS: RangeBand[] = [
   { id: "chol-normal", label: "Normal", min: 0, max: 200, tone: "green" },
   { id: "chol-warning", label: "Warning", min: 200, max: 240, tone: "yellow" },
   { id: "chol-critical", label: "Critical", min: 240, max: 320, tone: "red" },
 ];
 
-const temperatureBands: RangeBand[] = [
+const TEMPERATURE_BANDS: RangeBand[] = [
   { id: "temp-normal", label: "Normal", min: 36.1, max: 37.2, tone: "green" },
   { id: "temp-warning", label: "Warning", min: 37.2, max: 38, tone: "yellow" },
   { id: "temp-critical", label: "Critical", min: 38, max: 40.5, tone: "red" },
 ];
 
-const bloodPressureBands: RangeBand[] = [
+const BLOOD_PRESSURE_BANDS: RangeBand[] = [
   { id: "bp-normal", label: "Normal", min: 90, max: 120, tone: "green" },
   { id: "bp-warning", label: "Warning", min: 120, max: 140, tone: "yellow" },
   { id: "bp-critical", label: "Critical", min: 140, max: 200, tone: "red" },
 ];
 
-function formatShortDate(value: string) {
-  return new Date(value).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
+/**
+ * Format date to short format (e.g., "13 Mar")
+ */
+function formatShortDate(value: string): string {
+  try {
+    return new Date(value).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+  } catch {
+    return "Invalid date";
+  }
 }
 
-function formatLongDate(value: string) {
-  return new Date(value).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+/**
+ * Format date to long format (e.g., "13 Mar 2026")
+ */
+function formatLongDate(value: string): string {
+  try {
+    return new Date(value).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return "Invalid date";
+  }
 }
 
-function filterRange(records: PatientVitalRecord[], range: VitalsRange) {
+/**
+ * Filter records by time range
+ */
+function filterRange(records: PatientVitalRecord[], range: VitalsRange): PatientVitalRecord[] {
   if (!records.length) return [];
 
   const sorted = records
@@ -146,6 +199,9 @@ function filterRange(records: PatientVitalRecord[], range: VitalsRange) {
   return sorted.filter((row) => new Date(row.recordedAt).getTime() >= start.getTime());
 }
 
+/**
+ * Extract metric points from records
+ */
 function getMetricPoints(records: PatientVitalRecord[], key: keyof PatientVitalRecord): MetricPoint[] {
   return records
     .filter((row) => typeof row[key] === "number")
@@ -156,7 +212,10 @@ function getMetricPoints(records: PatientVitalRecord[], key: keyof PatientVitalR
     }));
 }
 
-function getBloodPressurePoints(records: PatientVitalRecord[]) {
+/**
+ * Extract blood pressure points from records
+ */
+function getBloodPressurePoints(records: PatientVitalRecord[]): BloodPressurePoint[] {
   return records
     .filter((row) => typeof row.bpSystolic === "number" || typeof row.bpDiastolic === "number")
     .map((row) => ({
@@ -167,12 +226,21 @@ function getBloodPressurePoints(records: PatientVitalRecord[]) {
     }));
 }
 
-function resolveTone(value: number, bands: RangeBand[]) {
+/**
+ * Determine tone (green/yellow/red) based on value and bands
+ */
+function resolveTone(value: number, bands: RangeBand[]): "green" | "yellow" | "red" {
   const match = bands.find((band) => value >= band.min && value < band.max);
   return match?.tone || "red";
 }
 
-function createBandAnnotations(bands: RangeBand[], maxValue: number) {
+/**
+ * Create band annotations for charts
+ */
+function createBandAnnotations(
+  bands: RangeBand[],
+  maxValue: number
+): Record<string, AnnotationOptions<"box">> {
   const upper = Math.max(maxValue, bands[bands.length - 1]?.max ?? maxValue);
 
   return Object.fromEntries(
@@ -182,14 +250,29 @@ function createBandAnnotations(bands: RangeBand[], maxValue: number) {
         type: "box",
         yMin: band.min,
         yMax: band.max >= upper ? upper : band.max,
-        backgroundColor: toneStyles[band.tone].bg,
+        backgroundColor: TONE_STYLES[band.tone].bg,
         borderWidth: 0,
       },
     ]),
   ) as Record<string, AnnotationOptions<"box">>;
 }
 
-function emptyBarOptions(maxValue: number, bands: RangeBand[], unit: string): ChartOptions<"bar"> {
+/**
+ * Get tone style for chart card
+ */
+function getChartCardTone(value: number | null, bands: RangeBand[]): string {
+  if (value === null) return "bg-slate-50 text-slate-700";
+  return TONE_STYLES[resolveTone(value, bands)].pill;
+}
+
+/**
+ * Get bar chart options with consistent styling
+ */
+function getBarChartOptions(
+  maxValue: number,
+  bands: RangeBand[],
+  unit: string
+): ChartOptions<"bar"> {
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -227,11 +310,54 @@ function emptyBarOptions(maxValue: number, bands: RangeBand[], unit: string): Ch
   };
 }
 
-function chartCardTone(value: number | null, bands: RangeBand[]) {
-  if (value === null) return "bg-slate-50 text-slate-700";
-  return toneStyles[resolveTone(value, bands)].pill;
+/**
+ * Get line chart options with consistent styling
+ */
+function getLineChartOptions(
+  maxValue: number,
+  bands: RangeBand[]
+): ChartOptions<"line"> {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 700 },
+    plugins: {
+      legend: { position: "top" as const },
+      tooltip: {
+        callbacks: {
+          title(items) {
+            return items[0]?.label || "";
+          },
+          label(context) {
+            return `${context.dataset.label}: ${context.parsed.y} mmHg`;
+          },
+        },
+      },
+      annotation: {
+        annotations: createBandAnnotations(bands, maxValue * 1.15),
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { color: "rgba(100,116,139,0.95)" },
+      },
+      y: {
+        suggestedMax: maxValue * 1.15,
+        ticks: { color: "rgba(100,116,139,0.95)" },
+        grid: { color: "rgba(148,163,184,0.15)" },
+      },
+    },
+  };
 }
 
+// ============================================================================
+// Components
+// ============================================================================
+
+/**
+ * Summary card displaying a single vital metric
+ */
 function SummaryCard({
   title,
   value,
@@ -244,13 +370,13 @@ function SummaryCard({
   helper: string;
   icon: ReactNode;
   tone: string;
-}) {
+}): ReactElement {
   return (
-    <Card className="rounded-[1.65rem] border-border/80 bg-card/95 shadow-[0_18px_45px_-30px_rgba(15,23,42,0.3)]">
+    <Card className="rounded-[1.65rem] border-border/80 bg-card/95 shadow-[0_18px_45px_-30px_rgba(15,23,42,0.3)] transition-shadow hover:shadow-[0_24px_55px_-30px_rgba(15,23,42,0.4)]">
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className={cn("rounded-2xl p-3", tone)}>{icon}</div>
-          <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+          <ShieldCheck className="h-4 w-4 text-muted-foreground opacity-70" aria-hidden="true" />
         </div>
         <p className="mt-4 text-sm font-medium text-muted-foreground">{title}</p>
         <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
@@ -260,7 +386,10 @@ function SummaryCard({
   );
 }
 
-function EmptyChart({ title }: { title: string }) {
+/**
+ * Empty state for charts with no data
+ */
+function EmptyChart({ title }: { title: string }): ReactElement {
   return (
     <div className="flex h-[320px] items-center justify-center rounded-[1.6rem] border border-dashed border-border bg-muted/20 text-center">
       <div className="space-y-2 px-6">
@@ -271,6 +400,9 @@ function EmptyChart({ title }: { title: string }) {
   );
 }
 
+/**
+ * Bar chart for single-value metrics (blood sugar, heart rate, cholesterol, temperature)
+ */
 function IndicatorBarChart({
   title,
   description,
@@ -285,7 +417,7 @@ function IndicatorBarChart({
   bands: RangeBand[];
   unit: string;
   icon: ReactNode;
-}) {
+}): ReactElement {
   if (!data.length) {
     return <EmptyChart title={title} />;
   }
@@ -294,24 +426,38 @@ function IndicatorBarChart({
   const maxValue = Math.max(...data.map((item) => item.value), bands[bands.length - 1]?.max ?? 0);
 
   return (
-    <Card className="rounded-[1.9rem] border-border/80 bg-card/95 shadow-[0_18px_55px_-34px_rgba(15,23,42,0.28)]">
+    <Card className="rounded-[1.9rem] border-border/80 bg-card/95 shadow-[0_18px_55px_-34px_rgba(15,23,42,0.28)] transition-shadow hover:shadow-[0_24px_65px_-32px_rgba(15,23,42,0.32)]">
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
         <div>
           <CardTitle className="text-base text-foreground">{title}</CardTitle>
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
-        <div className="rounded-2xl border border-border bg-muted/40 p-3 text-foreground">{icon}</div>
+        <div
+          className="rounded-2xl border border-border bg-muted/40 p-3 text-foreground"
+          aria-hidden="true"
+        >
+          {icon}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Latest reading</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              Latest reading
+            </p>
             <p className="mt-1 text-2xl font-semibold text-foreground">
               {latest.value}
               {unit}
             </p>
           </div>
-          <span className={cn("rounded-full px-3 py-1 text-xs font-semibold", chartCardTone(latest.value, bands))}>
+          <span
+            className={cn(
+              "rounded-full px-3 py-1 text-xs font-semibold",
+              getChartCardTone(latest.value, bands)
+            )}
+            role="status"
+            aria-label={`Status: ${resolveTone(latest.value, bands).toUpperCase()}`}
+          >
             {resolveTone(latest.value, bands).toUpperCase()}
           </span>
         </div>
@@ -323,11 +469,13 @@ function IndicatorBarChart({
                 {
                   data: data.map((item) => item.value),
                   borderRadius: 10,
-                  backgroundColor: data.map((item) => toneStyles[resolveTone(item.value, bands)].bar),
+                  backgroundColor: data.map((item) =>
+                    TONE_STYLES[resolveTone(item.value, bands)].bar
+                  ),
                 },
               ],
             }}
-            options={emptyBarOptions(maxValue, bands, unit)}
+            options={getBarChartOptions(maxValue, bands, unit)}
           />
         </div>
       </CardContent>
@@ -335,11 +483,14 @@ function IndicatorBarChart({
   );
 }
 
+/**
+ * Line chart for blood pressure (systolic and diastolic)
+ */
 function BloodPressureChart({
   data,
 }: {
-  data: Array<{ label: string; isoDate: string; systolic: number | null; diastolic: number | null }>;
-}) {
+  data: BloodPressurePoint[];
+}): ReactElement {
   if (!data.length) {
     return <EmptyChart title="Blood Pressure Trend" />;
   }
@@ -347,24 +498,31 @@ function BloodPressureChart({
   const latest = data[data.length - 1];
   const maxValue = Math.max(
     ...data.flatMap((item) => [item.systolic ?? 0, item.diastolic ?? 0]),
-    bloodPressureBands[bloodPressureBands.length - 1]?.max ?? 0,
+    BLOOD_PRESSURE_BANDS[BLOOD_PRESSURE_BANDS.length - 1]?.max ?? 0
   );
 
   return (
-    <Card className="rounded-[1.9rem] border-border/80 bg-card/95 shadow-[0_18px_55px_-34px_rgba(15,23,42,0.28)]">
+    <Card className="rounded-[1.9rem] border-border/80 bg-card/95 shadow-[0_18px_55px_-34px_rgba(15,23,42,0.28)] transition-shadow hover:shadow-[0_24px_65px_-32px_rgba(15,23,42,0.32)]">
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
         <div>
           <CardTitle className="text-base text-foreground">Blood Pressure Trend</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">Systolic and diastolic movement with medical threshold bands.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Systolic and diastolic movement with medical threshold bands.
+          </p>
         </div>
-        <div className="rounded-2xl border border-border bg-muted/40 p-3 text-foreground">
+        <div
+          className="rounded-2xl border border-border bg-muted/40 p-3 text-foreground"
+          aria-hidden="true"
+        >
           <Activity className="h-5 w-5" />
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Latest reading</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              Latest reading
+            </p>
             <p className="mt-1 text-2xl font-semibold text-foreground">
               {latest.systolic ?? "-"} / {latest.diastolic ?? "-"} mmHg
             </p>
@@ -372,10 +530,14 @@ function BloodPressureChart({
           <span
             className={cn(
               "rounded-full px-3 py-1 text-xs font-semibold",
-              chartCardTone(latest.systolic ?? null, bloodPressureBands),
+              getChartCardTone(latest.systolic ?? null, BLOOD_PRESSURE_BANDS)
             )}
+            role="status"
+            aria-label={`Status: ${
+              latest.systolic ? resolveTone(latest.systolic, BLOOD_PRESSURE_BANDS).toUpperCase() : "NO DATA"
+            }`}
           >
-            {latest.systolic ? resolveTone(latest.systolic, bloodPressureBands).toUpperCase() : "NO DATA"}
+            {latest.systolic ? resolveTone(latest.systolic, BLOOD_PRESSURE_BANDS).toUpperCase() : "NO DATA"}
           </span>
         </div>
         <div className="h-[280px]">
@@ -392,7 +554,9 @@ function BloodPressureChart({
                   tension: 0.35,
                   pointRadius: 4,
                   pointBackgroundColor: data.map((item) =>
-                    item.systolic ? toneStyles[resolveTone(item.systolic, bloodPressureBands)].line : "#94a3b8",
+                    item.systolic
+                      ? TONE_STYLES[resolveTone(item.systolic, BLOOD_PRESSURE_BANDS)].line
+                      : "#94a3b8"
                   ),
                 },
                 {
@@ -407,38 +571,7 @@ function BloodPressureChart({
                 },
               ],
             }}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              animation: { duration: 700 },
-              plugins: {
-                legend: { position: "top" as const },
-                tooltip: {
-                  callbacks: {
-                    title(items) {
-                      return items[0]?.label || "";
-                    },
-                    label(context) {
-                      return `${context.dataset.label}: ${context.parsed.y} mmHg`;
-                    },
-                  },
-                },
-                annotation: {
-                  annotations: createBandAnnotations(bloodPressureBands, maxValue * 1.15),
-                },
-              },
-              scales: {
-                x: {
-                  grid: { display: false },
-                  ticks: { color: "rgba(100,116,139,0.95)" },
-                },
-                y: {
-                  suggestedMax: maxValue * 1.15,
-                  ticks: { color: "rgba(100,116,139,0.95)" },
-                  grid: { color: "rgba(148,163,184,0.15)" },
-                },
-              },
-            } satisfies ChartOptions<"line">}
+            options={getLineChartOptions(maxValue, BLOOD_PRESSURE_BANDS)}
           />
         </div>
       </CardContent>
@@ -446,9 +579,75 @@ function BloodPressureChart({
   );
 }
 
-export default function VitalsAnalyticsDashboard({ records, compact = false }: VitalsAnalyticsDashboardProps) {
+/**
+ * Dashboard header with time range selector
+ */
+function DashboardHeader({
+  range,
+  onRangeChange,
+}: {
+  range: VitalsRange;
+  onRangeChange: (range: VitalsRange) => void;
+}): ReactElement {
+  return (
+    <section className="overflow-hidden rounded-[2rem] border border-border/80 bg-[linear-gradient(135deg,rgba(15,23,42,0.03),rgba(59,130,246,0.05),rgba(14,165,233,0.06))] p-6 shadow-[0_24px_70px_-40px_rgba(15,23,42,0.35)] sm:p-8">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="space-y-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" aria-hidden="true" />
+            Vitals Dashboard
+          </div>
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              Advanced patient vitals monitoring
+            </h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base">
+              Medical-style indicator graphs with risk-colored ranges for diabetes control, heart rate,
+              cholesterol, blood pressure, and thermal monitoring.
+            </p>
+          </div>
+        </div>
+
+        <fieldset className="inline-flex w-full rounded-2xl border border-border bg-card/90 p-1 sm:w-auto">
+          <legend className="sr-only">Select time range</legend>
+          {RANGE_OPTIONS.map((option) => (
+            <Button
+              key={option.value}
+              type="button"
+              variant="ghost"
+              onClick={() => onRangeChange(option.value)}
+              aria-pressed={range === option.value}
+              className={cn(
+                "h-10 flex-1 rounded-xl px-4 text-sm font-semibold sm:flex-none",
+                range === option.value && "bg-primary text-primary-foreground hover:bg-primary/90"
+              )}
+            >
+              {option.label}
+            </Button>
+          ))}
+        </fieldset>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================================
+// Main Component
+// ============================================================================
+
+/**
+ * VitalsAnalyticsDashboard - Professional medical vitals monitoring dashboard
+ *
+ * @param records - Array of patient vital records from the backend
+ * @param compact - Optional flag to show only key metrics (for embedded views)
+ */
+export default function VitalsAnalyticsDashboard({
+  records,
+  compact = false,
+}: VitalsAnalyticsDashboardProps): ReactElement {
   const [range, setRange] = useState<VitalsRange>("month");
 
+  // Memoized data transformations
   const filteredRecords = useMemo(() => filterRange(records, range), [records, range]);
   const bloodSugar = useMemo(() => getMetricPoints(filteredRecords, "bloodSugar"), [filteredRecords]);
   const heartRate = useMemo(() => getMetricPoints(filteredRecords, "heartRate"), [filteredRecords]);
@@ -456,7 +655,12 @@ export default function VitalsAnalyticsDashboard({ records, compact = false }: V
   const temperature = useMemo(() => getMetricPoints(filteredRecords, "temperatureC"), [filteredRecords]);
   const bloodPressure = useMemo(() => getBloodPressurePoints(filteredRecords), [filteredRecords]);
 
-  const latestRecord = useMemo(() => records[0] || null, [records]);
+  const latestRecord = useMemo(
+    () => filteredRecords[filteredRecords.length - 1] ?? records[records.length - 1] ?? null,
+    [filteredRecords, records]
+  );
+
+  // Compact view chart list
   const compactCharts = compact
     ? [
         <IndicatorBarChart
@@ -464,7 +668,7 @@ export default function VitalsAnalyticsDashboard({ records, compact = false }: V
           title="Blood Sugar Control"
           description="Colored readings for diabetes-style monitoring."
           data={bloodSugar}
-          bands={bloodSugarBands}
+          bands={BLOOD_SUGAR_BANDS}
           unit=" mg/dL"
           icon={<Droplets className="h-5 w-5" />}
         />,
@@ -474,66 +678,31 @@ export default function VitalsAnalyticsDashboard({ records, compact = false }: V
 
   return (
     <div className="space-y-6">
-      {!compact ? (
-        <section className="overflow-hidden rounded-[2rem] border border-border/80 bg-[linear-gradient(135deg,rgba(15,23,42,0.03),rgba(59,130,246,0.05),rgba(14,165,233,0.06))] p-6 shadow-[0_24px_70px_-40px_rgba(15,23,42,0.35)] sm:p-8">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                Vitals Dashboard
-              </div>
-              <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                  Advanced patient vitals monitoring
-                </h1>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base">
-                  Medical-style indicator graphs with risk-colored ranges for diabetes control, heart rate, cholesterol,
-                  blood pressure, and thermal monitoring.
-                </p>
-              </div>
-            </div>
+      {/* Header Section */}
+      {!compact && <DashboardHeader range={range} onRangeChange={setRange} />}
 
-            <div className="inline-flex w-full rounded-2xl border border-border bg-card/90 p-1 sm:w-auto">
-              {rangeOptions.map((option) => (
-                <Button
-                  key={option.value}
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setRange(option.value)}
-                  className={cn(
-                    "h-10 flex-1 rounded-xl px-4 text-sm font-semibold sm:flex-none",
-                    range === option.value && "bg-primary text-primary-foreground hover:bg-primary/90",
-                  )}
-                >
-                  {option.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
+      {/* Summary Cards */}
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         <SummaryCard
           title="Latest blood sugar"
           value={latestRecord?.bloodSugar ? `${latestRecord.bloodSugar} mg/dL` : "No reading"}
           helper={latestRecord ? `Updated ${formatLongDate(latestRecord.recordedAt)}` : "No readings yet"}
           icon={<Droplets className="h-5 w-5 text-violet-700" />}
-          tone={chartCardTone(latestRecord?.bloodSugar ?? null, bloodSugarBands)}
+          tone={getChartCardTone(latestRecord?.bloodSugar ?? null, BLOOD_SUGAR_BANDS)}
         />
         <SummaryCard
           title="Latest heart rate"
           value={latestRecord?.heartRate ? `${latestRecord.heartRate} bpm` : "No reading"}
           helper="Cardiac rhythm from the most recent vitals check"
           icon={<HeartPulse className="h-5 w-5 text-rose-700" />}
-          tone={chartCardTone(latestRecord?.heartRate ?? null, heartRateBands)}
+          tone={getChartCardTone(latestRecord?.heartRate ?? null, HEART_RATE_BANDS)}
         />
         <SummaryCard
           title="Latest cholesterol"
           value={latestRecord?.cholesterol ? `${latestRecord.cholesterol} mg/dL` : "No reading"}
           helper="Shows risk band for lipid monitoring"
           icon={<Activity className="h-5 w-5 text-cyan-700" />}
-          tone={chartCardTone(latestRecord?.cholesterol ?? null, cholesterolBands)}
+          tone={getChartCardTone(latestRecord?.cholesterol ?? null, CHOLESTEROL_BANDS)}
         />
         <SummaryCard
           title="Latest SpO2"
@@ -544,16 +713,18 @@ export default function VitalsAnalyticsDashboard({ records, compact = false }: V
         />
       </div>
 
+      {/* Charts Section */}
       {compact ? (
         <div className="grid gap-6 xl:grid-cols-2">{compactCharts}</div>
       ) : (
         <div className="space-y-6">
+          {/* Row 1: Blood Sugar & Heart Rate */}
           <div className="grid gap-6 xl:grid-cols-2">
             <IndicatorBarChart
               title="Blood Sugar Control Chart"
               description="Diabetes-style monitoring with green, yellow, and red control bands."
               data={bloodSugar}
-              bands={bloodSugarBands}
+              bands={BLOOD_SUGAR_BANDS}
               unit=" mg/dL"
               icon={<Droplets className="h-5 w-5" />}
             />
@@ -561,29 +732,31 @@ export default function VitalsAnalyticsDashboard({ records, compact = false }: V
               title="Heart Rate Chart"
               description="Responsive pulse monitoring with medical indicator coloring."
               data={heartRate}
-              bands={heartRateBands}
+              bands={HEART_RATE_BANDS}
               unit=" bpm"
               icon={<HeartPulse className="h-5 w-5" />}
             />
           </div>
 
+          {/* Row 2: Cholesterol & Blood Pressure */}
           <div className="grid gap-6 xl:grid-cols-2">
             <IndicatorBarChart
               title="Cholesterol Chart"
               description="Lipid control chart with warning and critical ranges."
               data={cholesterol}
-              bands={cholesterolBands}
+              bands={CHOLESTEROL_BANDS}
               unit=" mg/dL"
               icon={<Activity className="h-5 w-5" />}
             />
             <BloodPressureChart data={bloodPressure} />
           </div>
 
+          {/* Row 3: Temperature */}
           <IndicatorBarChart
             title="Temperature Trend"
             description="Body temperature graph with normal, warning, and critical fever ranges."
             data={temperature}
-            bands={temperatureBands}
+            bands={TEMPERATURE_BANDS}
             unit=" °C"
             icon={<Thermometer className="h-5 w-5" />}
           />
