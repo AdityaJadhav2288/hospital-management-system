@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { prisma } from "../config/prisma";
 import { AppError } from "../utils/app-error";
 import { CreatePrescriptionInput, CreateVisitNoteInput, CreateVitalsInput } from "../utils/validation";
+import { VitalsService } from "./vitals.service";
 
 export class DoctorService {
   public static async getDashboardMetrics(doctorId: string) {
@@ -263,22 +264,7 @@ export class DoctorService {
           createdAt: true,
         },
       }),
-      prisma.vitals.findMany({
-        where: {
-          patientId: patient.id,
-        },
-        orderBy: { recordedAt: "desc" },
-        select: {
-          id: true,
-          heightCm: true,
-          weightKg: true,
-          bloodPressure: true,
-          pulseRate: true,
-          temperatureC: true,
-          notes: true,
-          recordedAt: true,
-        },
-      }),
+      VitalsService.listPatientVitals(patient.id),
       prisma.visitNote.findMany({
         where: {
           doctorId: doctor.id,
@@ -376,31 +362,7 @@ export class DoctorService {
   }
 
   public static async createVitals(doctorId: string, payload: CreateVitalsInput) {
-    const [doctor, patient] = await Promise.all([
-      prisma.doctor.findUnique({ where: { id: doctorId } }),
-      prisma.patient.findUnique({ where: { id: payload.patientId } }),
-    ]);
-
-    if (!doctor) {
-      throw new AppError(StatusCodes.NOT_FOUND, "Doctor profile not found");
-    }
-
-    if (!patient) {
-      throw new AppError(StatusCodes.NOT_FOUND, "Patient not found");
-    }
-
-    return prisma.vitals.create({
-      data: {
-        patientId: patient.id,
-        recordedByDoctorId: doctor.id,
-        heightCm: payload.heightCm,
-        weightKg: payload.weightKg,
-        bloodPressure: payload.bloodPressure,
-        pulseRate: payload.pulseRate,
-        temperatureC: payload.temperatureC,
-        notes: payload.notes,
-      },
-    });
+    return VitalsService.recordVitals(doctorId, payload);
   }
 
   public static async createVisitNote(doctorId: string, payload: CreateVisitNoteInput) {

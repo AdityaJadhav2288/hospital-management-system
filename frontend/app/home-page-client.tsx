@@ -206,7 +206,7 @@ export function HomePageClient() {
             {featuredDepartments.map((department) => (
               <Card
                 key={department?.id || department?.name}
-                className="rounded-xl border border-slate-200 bg-white shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 overflow-hidden group"
+                className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:border-blue-200 hover:shadow-xl"
               >
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
                 
@@ -279,7 +279,7 @@ export function HomePageClient() {
             {services.map((service, index) => (
               <Card 
                 key={service.title} 
-                className="rounded-xl border border-slate-200 bg-white shadow-sm hover:shadow-xl hover:border-cyan-200 transition-all duration-300 overflow-hidden group"
+                className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:border-cyan-200 hover:shadow-xl"
               >
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-500"></div>
 

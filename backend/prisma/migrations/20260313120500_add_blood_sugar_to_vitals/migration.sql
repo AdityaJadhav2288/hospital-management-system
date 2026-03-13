@@ -1,0 +1,2 @@
+-- Superseded by 20260313143000_upgrade_patient_vitals_monitoring.
+-- Intentionally left empty so existing migration history remains linear.

@@ -1,304 +1,352 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
-  Activity,
+  AlertCircle,
   ArrowRight,
   CalendarDays,
-  Clock,
-  ClipboardList,
-  FileHeart,
+  Clock3,
   HeartPulse,
   Pill,
-  Stethoscope,
-  AlertCircle,
-  CheckCircle2,
+  ShieldCheck,
+  Sparkles,
+  UserRound,
 } from "lucide-react";
 import { AppointmentStatusBadge } from "@/components/shared/appointment-status-badge";
 import { DashboardSkeleton } from "@/features/dashboard/loading-skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useApi } from "@/hooks/use-api";
-import { cn, formatDateTime } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 import { dashboardService } from "@/services/dashboard.service";
+import { patientPortalService } from "@/services/patient-portal.service";
 import { useAuthStore } from "@/store/auth-store";
 
-function VitalValue({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 hover:shadow-md transition-shadow duration-300">
-      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</p>
-      <p className="mt-3 text-2xl font-bold text-slate-900">{value}</p>
-    </div>
-  );
+const VitalsAnalyticsDashboard = dynamic(
+  () => import("@/components/patient/vitals-analytics-dashboard"),
+  { ssr: false },
+);
+
+function formatValue(value?: number | null, suffix = "") {
+  return typeof value === "number" ? `${value}${suffix}` : "No reading";
 }
 
-function StatCard({ 
-  icon, 
-  label, 
-  value, 
-  color 
-}: { 
-  icon: React.ReactNode; 
-  label: string; 
-  value: number;
-  color: 'blue' | 'green' | 'purple' | 'amber';
+function MetricCard({
+  label,
+  value,
+  helper,
+  icon,
+  accent,
+}: {
+  label: string;
+  value: string;
+  helper: string;
+  icon: React.ReactNode;
+  accent: string;
 }) {
-  const colorMap = {
-    blue: { bg: 'from-blue-50 to-cyan-50', border: 'border-blue-200', icon: 'bg-blue-100 text-blue-600', accent: 'bg-blue-500' },
-    green: { bg: 'from-green-50 to-emerald-50', border: 'border-green-200', icon: 'bg-green-100 text-green-600', accent: 'bg-green-500' },
-    purple: { bg: 'from-purple-50 to-violet-50', border: 'border-purple-200', icon: 'bg-purple-100 text-purple-600', accent: 'bg-purple-500' },
-    amber: { bg: 'from-amber-50 to-orange-50', border: 'border-amber-200', icon: 'bg-amber-100 text-amber-600', accent: 'bg-amber-500' },
-  };
-
-  const colors = colorMap[color];
-
   return (
-    <Card className={cn(
-      "rounded-lg border shadow-sm hover:shadow-lg transition-all duration-300 cursor-default group",
-      `bg-gradient-to-br ${colors.bg}`,
-      colors.border
-    )}>
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className={cn("rounded-lg p-3 group-hover:scale-110 transition-transform duration-300", colors.icon)}>
-            {icon}
-          </div>
-          <div className={cn("h-1 w-12 rounded-full group-hover:w-16 transition-all duration-300", colors.accent)}></div>
+    <Card className="rounded-[1.7rem] border-border/80 bg-card/95 shadow-[0_18px_50px_-32px_rgba(15,23,42,0.3)]">
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className={`rounded-2xl p-3 ${accent}`}>{icon}</div>
+          <span className="rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Live
+          </span>
         </div>
-        <p className="text-sm font-medium text-slate-600">{label}</p>
-        <p className="mt-2 text-4xl font-bold text-slate-900">{value}</p>
+        <p className="mt-4 text-sm font-medium text-muted-foreground">{label}</p>
+        <p className="mt-1 text-3xl font-semibold tracking-tight text-foreground">{value}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{helper}</p>
       </CardContent>
     </Card>
   );
 }
 
+function QuickLink({
+  href,
+  title,
+  description,
+  icon,
+}: {
+  href: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <Link href={href}>
+      <div className="group rounded-[1.5rem] border border-border bg-card/90 p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+        <div className="flex items-start justify-between gap-3">
+          <div className="rounded-2xl border border-border bg-muted/50 p-3 text-foreground">{icon}</div>
+          <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-1" />
+        </div>
+        <p className="mt-4 text-sm font-semibold text-foreground">{title}</p>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+      </div>
+    </Link>
+  );
+}
+
 export default function PatientDashboardPage() {
-  const { data, loading, execute } = useApi(dashboardService.getPatientMetrics);
+  const dashboardQuery = useApi(dashboardService.getPatientMetrics);
+  const vitalsQuery = useApi(patientPortalService.getVitals);
   const { user } = useAuthStore();
 
   useEffect(() => {
-    void execute();
-  }, [execute]);
+    void dashboardQuery.execute();
+    void vitalsQuery.execute();
+  }, [dashboardQuery.execute, vitalsQuery.execute]);
 
-  if (loading || !data) return <DashboardSkeleton />;
+  const latestSugar = useMemo(
+    () => vitalsQuery.data?.find((item) => typeof item.bloodSugar === "number")?.bloodSugar ?? null,
+    [vitalsQuery.data],
+  );
+  const latestCholesterol = useMemo(
+    () => vitalsQuery.data?.find((item) => typeof item.cholesterol === "number")?.cholesterol ?? null,
+    [vitalsQuery.data],
+  );
+  const latestSpo2 = useMemo(
+    () => vitalsQuery.data?.find((item) => typeof item.spo2 === "number")?.spo2 ?? null,
+    [vitalsQuery.data],
+  );
 
+  if (dashboardQuery.loading || !dashboardQuery.data) {
+    return <DashboardSkeleton />;
+  }
+
+  const data = dashboardQuery.data;
   const latestVitals = data.latestVitals;
   const nextAppointment = data.nextAppointment;
 
   return (
     <div className="space-y-8">
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-blue-50 shadow-md">
-        <div className="grid gap-8 px-6 py-10 lg:grid-cols-[1.3fr_1fr] lg:px-10">
-          <div className="space-y-6 flex flex-col justify-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 px-4 py-2 w-fit text-sm font-semibold text-blue-700">
-              <HeartPulse size={16} className="text-blue-600" />
-              Welcome back
+      <section className="overflow-hidden rounded-[2rem] border border-border/80 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.16),transparent_28%),linear-gradient(135deg,rgba(248,250,252,0.96),rgba(255,255,255,1),rgba(239,246,255,0.96))] shadow-[0_28px_80px_-42px_rgba(15,23,42,0.35)]">
+        <div className="grid gap-8 px-6 py-8 lg:grid-cols-[1.2fr_0.8fr] lg:px-8">
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+              <ShieldCheck className="h-4 w-4 text-emerald-600" />
+              Patient Analytics Hub
             </div>
             <div className="space-y-3">
-              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900">
-                Health overview for {user?.name || "your account"}
+              <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+                Welcome back, {user?.name || "Patient"}
               </h1>
-              <p className="max-w-2xl text-base leading-relaxed text-slate-600">
-                Track your appointments, monitor vitals, manage prescriptions, and access medical reports in one secure workspace.
+              <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+                Monitor your clinical trends, manage appointments, and review prescriptions from a healthcare
+                workspace designed like a modern hospital intelligence portal.
               </p>
             </div>
-            <div className="flex flex-wrap gap-3 pt-2">
+            <div className="flex flex-wrap gap-3">
               <Link href="/patient/appointments/book">
-                <Button className="h-11 px-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg font-semibold shadow-sm hover:shadow-lg transition-all">
+                <Button className="h-11 rounded-xl px-6 font-semibold">
                   Book appointment
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/dashboard/patient/reports">
-                <Button variant="outline" className="h-11 px-6 rounded-lg font-semibold border-slate-300 hover:bg-slate-50 transition-colors">
-                  View reports
-                  <ArrowRight className="ml-2 h-4 w-4" />
+              <Link href="/dashboard/patient/history">
+                <Button variant="outline" className="h-11 rounded-xl px-6 font-semibold">
+                  Open vitals analytics
+                  <HeartPulse className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
             </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <MetricCard
+                label="Upcoming appointments"
+                value={String(data.upcomingAppointments)}
+                helper="Confirmed and pending future visits"
+                icon={<CalendarDays className="h-5 w-5 text-blue-700" />}
+                accent="bg-blue-50 text-blue-700"
+              />
+              <MetricCard
+                label="Active prescriptions"
+                value={String(data.activePrescriptions)}
+                helper="Current medications on your profile"
+                icon={<Pill className="h-5 w-5 text-emerald-700" />}
+                accent="bg-emerald-50 text-emerald-700"
+              />
+              <MetricCard
+                label="Latest sugar"
+                value={latestSugar !== null ? `${latestSugar} mg/dL` : "Awaiting data"}
+                helper={latestVitals ? `Synced ${new Date(latestVitals.recordedAt).toLocaleDateString("en-IN")}` : "No sugar reading yet"}
+                icon={<Sparkles className="h-5 w-5 text-violet-700" />}
+                accent="bg-violet-50 text-violet-700"
+              />
+            </div>
           </div>
 
-          <Card className="rounded-lg border border-slate-200 bg-white shadow-lg">
-            <CardHeader className="pb-4 border-b border-slate-100">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Clock className="h-5 w-5 text-blue-600" />
-                Next appointment
+          <Card className="rounded-[1.8rem] border-border/80 bg-card/95 shadow-[0_20px_60px_-35px_rgba(15,23,42,0.3)]">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Clock3 className="h-5 w-5 text-primary" />
+                Care command center
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-5">
-              {nextAppointment ? (
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3 pb-3 border-b border-slate-100">
-                    <div className="flex-shrink-0">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 text-white font-bold">
-                        {nextAppointment.doctor?.name?.charAt(0).toUpperCase() || 'D'}
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-base font-bold text-slate-900">
-                        Dr. {nextAppointment.doctor?.name?.replace(/^Dr\.\s+/i, '') || "Assigned doctor"}
-                      </p>
-                      <p className="text-sm text-slate-600 mt-1">
-                        {nextAppointment.doctor?.specialization || "Consultation"} {nextAppointment.doctor?.department && `· ${nextAppointment.doctor.department}`}
-                      </p>
-                    </div>
-                    <AppointmentStatusBadge status={nextAppointment.status} />
-                  </div>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-center gap-3 text-slate-700">
-                      <CalendarDays className="h-5 w-5 text-blue-500 flex-shrink-0" />
+            <CardContent className="space-y-5">
+              <div className="rounded-[1.4rem] border border-border bg-muted/30 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Next appointment</p>
+                {nextAppointment ? (
+                  <div className="mt-3 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="font-semibold">{formatDateTime(nextAppointment.date)}</p>
+                        <p className="text-lg font-semibold text-foreground">
+                          Dr. {nextAppointment.doctor?.name?.replace(/^Dr\.\s+/i, "") || "Assigned doctor"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {nextAppointment.doctor?.specialization || "Consultation"}
+                          {nextAppointment.doctor?.department ? ` | ${nextAppointment.doctor.department}` : ""}
+                        </p>
                       </div>
+                      <AppointmentStatusBadge status={nextAppointment.status} />
                     </div>
-                    {nextAppointment.reason && (
-                      <div className="flex gap-3 text-slate-700">
-                        <span className="text-xs font-medium text-slate-500 flex-shrink-0 pt-1">Reason:</span>
-                        <p className="font-semibold">{nextAppointment.reason || "General consultation"}</p>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-3 text-slate-700">
-                      <span className="text-xs font-medium text-slate-500 flex-shrink-0">Contact:</span>
-                      <p className="font-semibold">{nextAppointment.doctor?.phone || "Reception desk"}</p>
-                    </div>
+                    <p className="text-sm font-medium text-foreground">{formatDateTime(nextAppointment.date)}</p>
+                    <p className="text-sm text-muted-foreground">{nextAppointment.reason || "General consultation"}</p>
                   </div>
+                ) : (
+                  <p className="mt-3 text-sm text-muted-foreground">No appointment is scheduled yet.</p>
+                )}
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-[1.4rem] border border-border bg-card p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Blood pressure</p>
+                  <p className="mt-3 text-2xl font-semibold text-foreground">{latestVitals?.bloodPressure || "No reading"}</p>
                 </div>
-              ) : (
-                <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
-                  <AlertCircle className="h-10 w-10 text-slate-300 mx-auto mb-3" />
-                  <p className="text-sm font-medium text-slate-600">No upcoming appointment scheduled yet.</p>
-                  <Link href="/patient/appointments/book" className="block mt-4">
-                    <Button variant="outline" size="sm" className="mx-auto rounded-lg font-semibold">
-                      Schedule one now
-                    </Button>
-                  </Link>
+                <div className="rounded-[1.4rem] border border-border bg-card p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Heart rate</p>
+                  <p className="mt-3 text-2xl font-semibold text-foreground">{formatValue(latestVitals?.heartRate, " bpm")}</p>
                 </div>
-              )}
+                <div className="rounded-[1.4rem] border border-border bg-card p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Temperature</p>
+                  <p className="mt-3 text-2xl font-semibold text-foreground">{formatValue(latestVitals?.temperatureC, " C")}</p>
+                </div>
+                <div className="rounded-[1.4rem] border border-border bg-card p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">SpO2</p>
+                  <p className="mt-3 text-2xl font-semibold text-foreground">
+                    {typeof latestVitals?.spo2 === "number"
+                      ? `${latestVitals.spo2}%`
+                      : latestSpo2 !== null
+                        ? `${latestSpo2}%`
+                        : "No reading"}
+                  </p>
+                </div>
+                <div className="rounded-[1.4rem] border border-border bg-card p-4 sm:col-span-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Cholesterol</p>
+                  <p className="mt-3 text-2xl font-semibold text-foreground">
+                    {typeof latestVitals?.cholesterol === "number"
+                      ? `${latestVitals.cholesterol} mg/dL`
+                      : latestCholesterol !== null
+                        ? `${latestCholesterol} mg/dL`
+                        : "No reading"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-[1.4rem] border border-border bg-[linear-gradient(135deg,rgba(15,23,42,0.03),rgba(59,130,246,0.05))] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Clinical sync</p>
+                <p className="mt-2 text-sm leading-6 text-foreground">
+                  {latestVitals ? formatDateTime(latestVitals.recordedAt) : "No vitals uploaded yet by your care team."}
+                </p>
+                {latestVitals?.notes ? <p className="mt-3 text-sm leading-6 text-muted-foreground">{latestVitals.notes}</p> : null}
+              </div>
             </CardContent>
           </Card>
         </div>
       </section>
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard 
-          icon={<CalendarDays className="h-6 w-6" />}
-          label="Upcoming appointments"
-          value={data.upcomingAppointments}
-          color="blue"
+      <section className="grid gap-4 lg:grid-cols-4">
+        <QuickLink
+          href="/dashboard/patient/appointments"
+          title="Appointments"
+          description="Track bookings, confirmations, and visit schedules."
+          icon={<CalendarDays className="h-5 w-5" />}
         />
-        <StatCard 
-          icon={<Pill className="h-6 w-6" />}
-          label="Active prescriptions"
-          value={data.activePrescriptions}
-          color="green"
+        <QuickLink
+          href="/dashboard/patient/prescriptions"
+          title="Prescriptions"
+          description="View premium prescription cards and download printable sheets."
+          icon={<Pill className="h-5 w-5" />}
         />
-        <StatCard 
-          icon={<Activity className="h-6 w-6" />}
-          label="Completed visits"
-          value={data.totalVisits}
-          color="purple"
+        <QuickLink
+          href="/dashboard/patient/history"
+          title="Vitals Analytics"
+          description="Open advanced medical indicator graphs with risk zones."
+          icon={<HeartPulse className="h-5 w-5" />}
         />
-        <StatCard 
-          icon={<FileHeart className="h-6 w-6" />}
-          label="Reports uploaded"
-          value={data.reportCount}
-          color="amber"
+        <QuickLink
+          href="/dashboard/patient/profile"
+          title="Profile"
+          description="Update personal details and maintain your care profile."
+          icon={<UserRound className="h-5 w-5" />}
         />
-      </div>
+      </section>
 
-      <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-        <Card className="rounded-lg border border-slate-200 shadow-md">
-          <CardHeader className="pb-4 border-b border-slate-100">
-            <CardTitle className="flex items-center gap-2">
-              <HeartPulse className="h-5 w-5 text-red-500" />
-              Latest vitals
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6 grid gap-4 md:grid-cols-2">
-            <VitalValue label="Weight" value={latestVitals?.weightKg ? `${latestVitals.weightKg} kg` : "-"} />
-            <VitalValue label="Blood Pressure" value={latestVitals?.bloodPressure || "-"} />
-            <VitalValue label="Heart Rate" value={latestVitals?.pulseRate ? `${latestVitals.pulseRate} bpm` : "-"} />
-            <VitalValue label="Temperature" value={latestVitals?.temperatureC ? `${latestVitals.temperatureC} °C` : "-"} />
-            <div className="md:col-span-2 rounded-lg border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-5 text-sm">
-              <div className="flex items-center gap-2 font-semibold text-slate-900 mb-2">
-                <Clock className="h-4 w-4 text-slate-500" />
-                Last updated
-              </div>
-              <p className="text-slate-600">{latestVitals ? formatDateTime(latestVitals.recordedAt) : "No vitals recorded yet"}</p>
-              {latestVitals?.notes && (
-                <p className="mt-3 text-slate-600 bg-blue-50 p-3 rounded border border-blue-200 border-l-4 border-l-blue-500 italic">{latestVitals.notes}</p>
-              )}
+      {vitalsQuery.data ? (
+        <VitalsAnalyticsDashboard records={vitalsQuery.data} compact />
+      ) : vitalsQuery.error ? (
+        <Card className="rounded-[1.75rem] border-border/80">
+          <CardContent className="flex items-start gap-4 p-6">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+              <AlertCircle className="h-5 w-5" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-foreground">Vitals analytics unavailable</p>
+              <p className="text-sm text-muted-foreground">{vitalsQuery.error}</p>
+              <Button type="button" variant="outline" onClick={() => void vitalsQuery.execute()}>
+                Retry vitals load
+              </Button>
             </div>
           </CardContent>
         </Card>
+      ) : null}
 
-        <Card className="rounded-lg border border-slate-200 shadow-md">
-          <CardHeader className="pb-4 border-b border-slate-100">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Activity className="h-5 w-5 text-blue-600" />
-              Quick actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-5 grid gap-3">
-            <Link href="/dashboard/patient/appointments">
-              <Button variant="outline" className="h-11 w-full justify-between rounded-lg font-semibold border-slate-200 hover:bg-blue-50 hover:border-blue-300 transition-all">
-                Manage appointments
-                <CalendarDays size={18} />
-              </Button>
-            </Link>
-            <Link href="/dashboard/patient/prescriptions">
-              <Button variant="outline" className="h-11 w-full justify-between rounded-lg font-semibold border-slate-200 hover:bg-green-50 hover:border-green-300 transition-all">
-                View prescriptions
-                <Pill size={18} />
-              </Button>
-            </Link>
-            <Link href="/dashboard/patient/history">
-              <Button variant="outline" className="h-11 w-full justify-between rounded-lg font-semibold border-slate-200 hover:bg-purple-50 hover:border-purple-300 transition-all">
-                Vitals & history
-                <ClipboardList size={18} />
-              </Button>
-            </Link>
-            <Link href="/dashboard/patient/profile">
-              <Button variant="outline" className="h-11 w-full justify-between rounded-lg font-semibold border-slate-200 hover:bg-amber-50 hover:border-amber-300 transition-all">
-                Update profile
-                <Stethoscope size={18} />
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="rounded-lg border border-slate-200 shadow-md">
-        <CardHeader className="pb-4 border-b border-slate-100">
-          <CardTitle className="flex items-center gap-2">
-            <Pill className="h-5 w-5 text-green-600" />
-            Recent prescriptions
-          </CardTitle>
+      <Card className="rounded-[1.9rem] border-border/80 bg-card/95 shadow-[0_18px_55px_-32px_rgba(15,23,42,0.28)]">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-xl text-foreground">Recent prescriptions</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Hospital-styled medication cards with doctor context and medicine tables.
+            </p>
+          </div>
+          <Link href="/dashboard/patient/prescriptions">
+            <Button variant="outline" className="rounded-xl font-semibold">
+              Open all
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
         </CardHeader>
-        <CardContent className="pt-6 grid gap-4 lg:grid-cols-3">
+        <CardContent className="grid gap-4 lg:grid-cols-3">
           {data.recentPrescriptions.length ? (
             data.recentPrescriptions.map((item) => (
-              <div key={item.id} className="rounded-lg border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 hover:shadow-lg hover:border-slate-300 transition-all duration-300">
-                <div className="flex items-start gap-3 mb-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-700 flex-shrink-0">
-                    <CheckCircle2 size={20} />
+              <div
+                key={item.id}
+                className="rounded-[1.6rem] border border-border bg-[linear-gradient(180deg,rgba(255,255,255,1),rgba(248,250,252,0.9))] p-5 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-700">
+                    <Pill className="h-5 w-5" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-slate-900 text-sm truncate">{item.medication}</p>
-                  </div>
+                  <span className="rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    Active
+                  </span>
                 </div>
-                <p className="text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md inline-block mb-3">{item.dosage}</p>
-                <p className="text-sm text-slate-600 leading-relaxed mb-4">{item.instructions}</p>
-                <p className="text-xs uppercase tracking-wider font-semibold text-slate-500 border-t border-slate-200 pt-3">
+                <p className="mt-4 text-lg font-semibold text-foreground">{item.medication}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
                   Dr. {item.doctor?.name || "Hospital team"}
+                  {item.doctor?.specialization ? ` | ${item.doctor.specialization}` : ""}
                 </p>
+                <div className="mt-4 rounded-[1.2rem] border border-border bg-muted/30 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Dosage</p>
+                  <p className="mt-2 text-sm font-medium text-foreground">{item.dosage}</p>
+                  <p className="mt-3 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Instructions</p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.instructions}</p>
+                </div>
               </div>
             ))
           ) : (
-            <div className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center lg:col-span-3">
-              <AlertCircle className="h-10 w-10 text-slate-300 mx-auto mb-2" />
-              <p className="text-sm font-medium text-slate-600">No prescriptions added yet.</p>
+            <div className="rounded-[1.6rem] border border-dashed border-border bg-muted/20 p-8 text-sm text-muted-foreground lg:col-span-3">
+              No prescriptions have been issued yet.
             </div>
           )}
         </CardContent>

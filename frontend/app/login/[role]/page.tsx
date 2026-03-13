@@ -19,7 +19,7 @@ const roleCopy = {
   },
   patient: {
     title: "Patient Login",
-    description: "Book appointments, review reports, and track your medical history.",
+    description: "Book appointments, monitor vitals analytics, and track your medical history.",
   },
 } as const;
 

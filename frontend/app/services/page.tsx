@@ -441,7 +441,7 @@ export default function ServicesPage() {
             <div className="category-filter">
               <button
                 onClick={() => setSelectedCategory(null)}
-                className={`filter-button ${selectedCategory === null ? "active specialist" : "inactive"}`}
+                className={`filter-button touch-manipulation ${selectedCategory === null ? "active specialist" : "inactive"}`}
               >
                 <Sparkles size={14} className="inline mr-2" />
                 All Services
@@ -450,7 +450,7 @@ export default function ServicesPage() {
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
-                  className={`filter-button ${
+                  className={`filter-button touch-manipulation ${
                     selectedCategory === category ? `active ${category.toLowerCase()}` : "inactive"
                   }`}
                 >

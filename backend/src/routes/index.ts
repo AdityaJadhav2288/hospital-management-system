@@ -11,6 +11,7 @@ import patientRoutes from "./patient.routes";
 import patientsRoutes from "./patients.routes";
 import prescriptionsRoutes from "./prescriptions.routes";
 import publicRoutes from "./public.routes";
+import vitalsRoutes from "./vitals.routes";
 
 const router = Router();
 
@@ -25,6 +26,7 @@ router.use("/appointments", appointmentsRoutes);
 router.use("/patients", patientsRoutes);
 router.use("/doctors", doctorsRoutes);
 router.use("/prescriptions", prescriptionsRoutes);
+router.use("/vitals", vitalsRoutes);
 router.use("/blood-bank", bloodBankRoutes);
 
 export default router;

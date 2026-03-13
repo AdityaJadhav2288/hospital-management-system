@@ -17,7 +17,7 @@ export function Topbar({ setSidebarOpen }: TopbarProps) {
       <div className="flex items-center gap-3">
         <button
           type="button"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:bg-muted lg:hidden"
+          className="inline-flex h-9 w-9 touch-manipulation items-center justify-center rounded-md border border-border text-muted-foreground transition hover:bg-muted lg:hidden"
           onClick={() => setSidebarOpen(true)}
           aria-label="Open sidebar"
         >

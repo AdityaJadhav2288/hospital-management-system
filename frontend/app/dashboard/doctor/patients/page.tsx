@@ -13,12 +13,30 @@ import { useApi } from "@/hooks/use-api";
 import { formatDateTime } from "@/lib/utils";
 import { doctorPortalService } from "@/services/doctor-portal.service";
 
+function toLocalDateTimeInputValue(value: Date) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  const hours = String(value.getHours()).padStart(2, "0");
+  const minutes = String(value.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function numericOrUndefined(value: FormDataEntryValue | null) {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return undefined;
+
+  const numeric = Number(raw);
+  return Number.isFinite(numeric) ? numeric : undefined;
+}
+
 export default function DoctorPatientsPage() {
   const { data, execute } = useApi(doctorPortalService.getPatients);
   const { data: history, execute: loadHistory } = useApi(doctorPortalService.getPatientHistory);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [recordsOpen, setRecordsOpen] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
+  const [recordedAt, setRecordedAt] = useState(() => toLocalDateTimeInputValue(new Date()));
 
   useEffect(() => {
     void execute();
@@ -97,8 +115,8 @@ export default function DoctorPatientsPage() {
                     <div key={row.id} className="rounded border border-border px-3 py-2">
                       <p className="font-medium">{formatDateTime(row.recordedAt)}</p>
                       <p className="text-muted-foreground">
-                        Height: {row.heightCm ?? "-"} cm | Weight: {row.weightKg ?? "-"} kg | BP:{" "}
-                        {row.bloodPressure ?? "-"} | Pulse: {row.pulseRate ?? "-"}
+                        Sugar: {row.bloodSugar ?? "-"} | HR: {row.heartRate ?? "-"} | BP: {row.bloodPressure ?? "-"} |
+                        SpO2: {row.spo2 ?? "-"}%
                       </p>
                     </div>
                   ))}
@@ -127,7 +145,7 @@ export default function DoctorPatientsPage() {
       <Dialog open={recordsOpen} onOpenChange={setRecordsOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Update Patient Record</DialogTitle>
+            <DialogTitle>Record Patient Vitals</DialogTitle>
           </DialogHeader>
           <form
             className="grid gap-3 md:grid-cols-2"
@@ -136,19 +154,58 @@ export default function DoctorPatientsPage() {
               const form = new FormData(event.currentTarget);
               await doctorPortalService.createVitals({
                 patientId: selectedPatientId,
-                heightCm: Number(form.get("heightCm") || 0) || undefined,
-                weightKg: Number(form.get("weightKg") || 0) || undefined,
-                bloodPressure: String(form.get("bloodPressure") || ""),
-                pulseRate: Number(form.get("pulseRate") || 0) || undefined,
+                recordedAt,
+                bloodSugar: numericOrUndefined(form.get("bloodSugar")),
+                heartRate: numericOrUndefined(form.get("heartRate")),
+                cholesterol: numericOrUndefined(form.get("cholesterol")),
+                bpSystolic: numericOrUndefined(form.get("bpSystolic")),
+                bpDiastolic: numericOrUndefined(form.get("bpDiastolic")),
+                temperatureC: numericOrUndefined(form.get("temperatureC")),
+                spo2: numericOrUndefined(form.get("spo2")),
+                weightKg: numericOrUndefined(form.get("weightKg")),
+                heightCm: numericOrUndefined(form.get("heightCm")),
                 notes: String(form.get("notes") || ""),
               });
-              toast.success("Patient records updated");
+              toast.success("Patient vitals updated");
               setRecordsOpen(false);
+              setRecordedAt(toLocalDateTimeInputValue(new Date()));
               if (selectedPatientId) {
                 void loadHistory(selectedPatientId);
               }
             }}
           >
+            <div className="space-y-1 md:col-span-2">
+              <Label>Date</Label>
+              <Input type="datetime-local" value={recordedAt} onChange={(event) => setRecordedAt(event.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label>Blood Sugar (mg/dL)</Label>
+              <Input name="bloodSugar" type="number" min="1" />
+            </div>
+            <div className="space-y-1">
+              <Label>Heart Rate (bpm)</Label>
+              <Input name="heartRate" type="number" min="1" />
+            </div>
+            <div className="space-y-1">
+              <Label>Cholesterol (mg/dL)</Label>
+              <Input name="cholesterol" type="number" min="1" />
+            </div>
+            <div className="space-y-1">
+              <Label>SpO2 (%)</Label>
+              <Input name="spo2" type="number" min="1" max="100" />
+            </div>
+            <div className="space-y-1">
+              <Label>BP Systolic</Label>
+              <Input name="bpSystolic" type="number" min="1" />
+            </div>
+            <div className="space-y-1">
+              <Label>BP Diastolic</Label>
+              <Input name="bpDiastolic" type="number" min="1" />
+            </div>
+            <div className="space-y-1">
+              <Label>Temperature (°C)</Label>
+              <Input name="temperatureC" type="number" min="1" step="0.1" />
+            </div>
             <div className="space-y-1">
               <Label>Height (cm)</Label>
               <Input name="heightCm" type="number" min="1" />
@@ -156,14 +213,6 @@ export default function DoctorPatientsPage() {
             <div className="space-y-1">
               <Label>Weight (kg)</Label>
               <Input name="weightKg" type="number" min="1" />
-            </div>
-            <div className="space-y-1">
-              <Label>Blood Pressure</Label>
-              <Input name="bloodPressure" placeholder="120/80" />
-            </div>
-            <div className="space-y-1">
-              <Label>Pulse Rate</Label>
-              <Input name="pulseRate" type="number" min="1" />
             </div>
             <div className="space-y-1 md:col-span-2">
               <Label>Clinical Notes</Label>

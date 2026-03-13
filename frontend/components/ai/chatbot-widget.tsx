@@ -76,8 +76,9 @@ export function ChatbotWidget() {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
+    <div className="pointer-events-none fixed bottom-5 right-5 z-40 flex flex-col items-end gap-3 sm:z-50">
       <div
+        aria-hidden={!open}
         className={`flex h-[72vh] w-[min(92vw,390px)] flex-col overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white shadow-[0_28px_80px_-28px_rgba(15,23,42,0.45)] transition-all duration-300 ease-out ${
           open
             ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
@@ -92,7 +93,7 @@ export function ChatbotWidget() {
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition hover:bg-white/25"
+            className="inline-flex h-8 w-8 touch-manipulation items-center justify-center rounded-full bg-white/15 transition hover:bg-white/25"
             aria-label="Close chat"
           >
             <X size={16} />

@@ -41,23 +41,14 @@ function loginPathByRole(role: UserRole): string {
 export const authService = {
   login: async (payload: LoginPayload): Promise<AuthResponse> => {
     const loginPath = loginPathByRole(payload.role);
-    console.info("[authService.login] request", { role: payload.role, path: loginPath });
-
-    let response: ApiAuthPayload;
-
-    try {
-      response = await apiClient.post<ApiAuthPayload>(
-        loginPath,
-        {
-          email: payload.email,
-          password: payload.password,
-        },
-        { auth: false },
-      );
-    } catch (error) {
-      console.error("[authService.login] failed", { role: payload.role, path: loginPath, error });
-      throw error;
-    }
+    const response = await apiClient.post<ApiAuthPayload>(
+      loginPath,
+      {
+        email: payload.email,
+        password: payload.password,
+      },
+      { auth: false },
+    );
 
     return toAuthResponse(response);
   },

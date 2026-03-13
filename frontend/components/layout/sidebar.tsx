@@ -83,7 +83,7 @@ export function Sidebar({
           </div>
           <button
             type="button"
-            className="lg:hidden"
+            className="touch-manipulation lg:hidden"
             onClick={() => setOpen(false)}
             aria-label="Close sidebar"
           >

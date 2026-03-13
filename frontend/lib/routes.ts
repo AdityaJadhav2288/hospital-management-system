@@ -29,7 +29,6 @@ export const sidebarRoutesByRole: Record<UserRole, Array<{ href: string; label: 
     { href: "/dashboard/patient/appointments", label: "Appointments" },
     { href: "/dashboard/patient/prescriptions", label: "Prescriptions" },
     { href: "/dashboard/patient/history", label: "Vitals & History" },
-    { href: "/dashboard/patient/reports", label: "Reports" },
     { href: "/dashboard/patient/profile", label: "Profile" },
   ],
 };

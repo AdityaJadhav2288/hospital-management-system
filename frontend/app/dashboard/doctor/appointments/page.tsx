@@ -33,6 +33,21 @@ const emptyConsultation = {
   instructions: "",
 };
 
+function parseBloodPressureInput(value: string) {
+  const match = value.match(/(\d{2,3})\s*\/\s*(\d{2,3})/);
+  if (!match) {
+    return { systolic: undefined, diastolic: undefined };
+  }
+
+  const systolic = Number(match[1]);
+  const diastolic = Number(match[2]);
+
+  return {
+    systolic: Number.isNaN(systolic) ? undefined : systolic,
+    diastolic: Number.isNaN(diastolic) ? undefined : diastolic,
+  };
+}
+
 function normalizeTemperatureInput(value: string) {
   if (!value.trim()) {
     return undefined;
@@ -254,7 +269,12 @@ export default function DoctorAppointmentsPage() {
                 <CardContent className="grid gap-4 md:grid-cols-2">
                   <Field label="Weight (kg)" value={form.weightKg} onChange={(value) => setForm((current) => ({ ...current, weightKg: value }))} />
                   <Field label="Height (cm)" value={form.heightCm} onChange={(value) => setForm((current) => ({ ...current, heightCm: value }))} />
-                  <Field label="Blood Pressure" value={form.bloodPressure} onChange={(value) => setForm((current) => ({ ...current, bloodPressure: value }))} />
+                  <Field
+                    label="Blood Pressure"
+                    value={form.bloodPressure}
+                    onChange={(value) => setForm((current) => ({ ...current, bloodPressure: value }))}
+                    placeholder="120/80"
+                  />
                   <Field label="Heart Rate" value={form.pulseRate} onChange={(value) => setForm((current) => ({ ...current, pulseRate: value }))} />
                   <Field
                     label="Temperature"
@@ -296,6 +316,7 @@ export default function DoctorAppointmentsPage() {
                   try {
                     setSaving(true);
                     const normalizedTemperature = normalizeTemperatureInput(form.temperatureC);
+                    const parsedBloodPressure = parseBloodPressureInput(form.bloodPressure);
 
                     await doctorPortalService.createVisitNote({
                       patientId: selectedAppointment.patientId,
@@ -316,8 +337,9 @@ export default function DoctorAppointmentsPage() {
                         patientId: selectedAppointment.patientId,
                         weightKg: Number(form.weightKg) || undefined,
                         heightCm: Number(form.heightCm) || undefined,
-                        bloodPressure: form.bloodPressure || undefined,
-                        pulseRate: Number(form.pulseRate) || undefined,
+                        bpSystolic: parsedBloodPressure.systolic,
+                        bpDiastolic: parsedBloodPressure.diastolic,
+                        heartRate: Number(form.pulseRate) || undefined,
                         temperatureC: normalizedTemperature,
                         notes: form.vitalsNotes || undefined,
                       });

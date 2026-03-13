@@ -12,7 +12,7 @@ import { zodResolverV4 } from "@/lib/zod-resolver";
 import { loginSchema, type LoginSchema } from "@/lib/validators/auth";
 
 const roleCards: Array<{ role: LoginSchema["role"]; label: string; helper: string }> = [
-  { role: "patient", label: "Patient", helper: "Book appointments and view reports" },
+  { role: "patient", label: "Patient", helper: "Book appointments and monitor health analytics" },
   { role: "doctor", label: "Doctor", helper: "Manage appointments and prescriptions" },
   { role: "admin", label: "Admin", helper: "Manage staff and hospital operations" },
 ];
@@ -43,11 +43,9 @@ export function LoginForm({ initialRole = "patient", lockRole = false, redirectT
 
   const onSubmit = async (values: LoginSchema) => {
     try {
-      console.info("[LoginForm] submit", { role: values.role, redirectTo });
       await login(values, redirectTo);
       toast.success("Login successful");
     } catch (error) {
-      console.error("[LoginForm] login failed", { role: values.role, redirectTo, error });
       toast.error(error instanceof Error ? error.message : "Unable to login");
     }
   };
@@ -77,7 +75,7 @@ export function LoginForm({ initialRole = "patient", lockRole = false, redirectT
                   setValue("role", item.role, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
                 }
                 className={cn(
-                  "rounded-lg border p-3 text-left transition-all",
+                  "touch-manipulation rounded-lg border p-3 text-left transition-all",
                   selectedRole === item.role
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-200 hover:border-blue-300",

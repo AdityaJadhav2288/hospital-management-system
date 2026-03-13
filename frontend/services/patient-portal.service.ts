@@ -1,6 +1,6 @@
 import { apiClient } from "@/services/api-client";
 import type { DownloadableMedicalReport, MedicalReport, MedicalReportCategory } from "@/types/report";
-import type { VitalsRecord } from "@/types/vitals";
+import type { PatientVitalRecord } from "@/types/vitals";
 
 export interface PatientProfile {
   id: string;
@@ -12,16 +12,7 @@ export interface PatientProfile {
   gender?: string | null;
 }
 
-interface ApiVitals {
-  id: string;
-  heightCm?: number | null;
-  weightKg?: number | null;
-  bloodPressure?: string | null;
-  pulseRate?: number | null;
-  temperatureC?: number | null;
-  notes?: string | null;
-  recordedAt: string;
-}
+type ApiVitals = PatientVitalRecord;
 
 interface ApiHistoryAppointment {
   id: string;
@@ -70,7 +61,7 @@ export interface PatientHistory {
   patient: PatientProfile;
   appointments: ApiHistoryAppointment[];
   prescriptions: ApiHistoryPrescription[];
-  vitals: VitalsRecord[];
+  vitals: ApiVitals[];
   visitNotes: ApiVisitNote[];
   reports: MedicalReport[];
 }
@@ -90,19 +81,7 @@ export const patientPortalService = {
   updateProfile: (payload: Partial<Pick<PatientProfile, "phone" | "address" | "dateOfBirth" | "gender">>): Promise<PatientProfile> =>
     apiClient.patch<PatientProfile>("/patient/profile", payload),
 
-  getVitals: async (): Promise<VitalsRecord[]> => {
-    const data = await apiClient.get<ApiVitals[]>("/patient/vitals");
-    return data.map((item) => ({
-      id: item.id,
-      heightCm: item.heightCm,
-      weightKg: item.weightKg,
-      bloodPressure: item.bloodPressure,
-      pulseRate: item.pulseRate,
-      temperatureC: item.temperatureC,
-      notes: item.notes,
-      recordedAt: item.recordedAt,
-    }));
-  },
+  getVitals: (): Promise<PatientVitalRecord[]> => apiClient.get<PatientVitalRecord[]>("/patient/vitals"),
 
   getHistory: async (): Promise<PatientHistory> => {
     const data = await apiClient.get<{
@@ -116,16 +95,7 @@ export const patientPortalService = {
 
     return {
       ...data,
-      vitals: data.vitals.map((item) => ({
-        id: item.id,
-        heightCm: item.heightCm,
-        weightKg: item.weightKg,
-        bloodPressure: item.bloodPressure,
-        pulseRate: item.pulseRate,
-        temperatureC: item.temperatureC,
-        notes: item.notes,
-        recordedAt: item.recordedAt,
-      })),
+      vitals: data.vitals,
     };
   },
 

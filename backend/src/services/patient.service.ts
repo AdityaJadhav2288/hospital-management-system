@@ -8,6 +8,7 @@ import {
   RescheduleAppointmentInput,
   UpdatePatientProfileInput,
 } from "../utils/validation";
+import { VitalsService } from "./vitals.service";
 
 export class PatientService {
   public static async getDashboardMetrics(patientId: string) {
@@ -52,10 +53,7 @@ export class PatientService {
           },
         },
       }),
-      prisma.vitals.findFirst({
-        where: { patientId: patient.id },
-        orderBy: { recordedAt: "desc" },
-      }),
+      VitalsService.getLatestPatientVitals(patient.id),
       prisma.prescription.findMany({
         where: { patientId: patient.id },
         orderBy: { createdAt: "desc" },
@@ -278,23 +276,34 @@ export class PatientService {
             profileImage: true,
           },
         },
-        appointment: true,
+        patient: {
+          select: {
+            id: true,
+            name: true,
+            dateOfBirth: true,
+          },
+        },
+        appointment: {
+          select: {
+            id: true,
+            date: true,
+            reason: true,
+            visitNotes: {
+              orderBy: { createdAt: "desc" },
+              take: 1,
+              select: {
+                diagnosis: true,
+              },
+            },
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
   }
 
   public static async listOwnVitals(patientId: string) {
-    const patient = await prisma.patient.findUnique({ where: { id: patientId } });
-
-    if (!patient) {
-      throw new AppError(StatusCodes.NOT_FOUND, "Patient profile not found");
-    }
-
-    return prisma.vitals.findMany({
-      where: { patientId: patient.id },
-      orderBy: { recordedAt: "desc" },
-    });
+    return VitalsService.listPatientVitals(patientId);
   }
 
   public static async getOwnHistory(patientId: string) {
@@ -343,10 +352,7 @@ export class PatientService {
           },
         },
       }),
-      prisma.vitals.findMany({
-        where: { patientId },
-        orderBy: { recordedAt: "desc" },
-      }),
+      VitalsService.listPatientVitals(patientId),
       prisma.visitNote.findMany({
         where: { patientId },
         orderBy: { createdAt: "desc" },

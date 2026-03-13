@@ -174,15 +174,50 @@ const temperatureSchema = z.preprocess((value) => {
   return numericValue;
 }, z.number().positive().max(45).optional());
 
-export const createVitalsSchema = z.object({
-  patientId: z.string().min(1),
-  heightCm: z.coerce.number().positive().optional(),
-  weightKg: z.coerce.number().positive().optional(),
-  bloodPressure: z.string().optional(),
-  pulseRate: z.coerce.number().int().positive().optional(),
-  temperatureC: temperatureSchema,
-  notes: z.string().max(2000).optional(),
-});
+export const createVitalsSchema = z
+  .object({
+    patientId: z.string().min(1),
+    recordedAt: z.coerce.date().optional(),
+    bloodSugar: z.coerce.number().int().positive().max(600).optional(),
+    heartRate: z.coerce.number().int().positive().max(260).optional(),
+    cholesterol: z.coerce.number().int().positive().max(500).optional(),
+    bpSystolic: z.coerce.number().int().positive().max(320).optional(),
+    bpDiastolic: z.coerce.number().int().positive().max(220).optional(),
+    temperatureC: temperatureSchema,
+    spo2: z.coerce.number().int().min(1).max(100).optional(),
+    weightKg: z.coerce.number().positive().max(500).optional(),
+    heightCm: z.coerce.number().positive().max(300).optional(),
+    notes: z.string().max(2000).optional(),
+  })
+  .superRefine((data, ctx) => {
+    const hasMetric = [
+      data.bloodSugar,
+      data.heartRate,
+      data.cholesterol,
+      data.bpSystolic,
+      data.bpDiastolic,
+      data.temperatureC,
+      data.spo2,
+      data.weightKg,
+      data.heightCm,
+    ].some((value) => value !== undefined);
+
+    if (!hasMetric) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["bloodSugar"],
+        message: "At least one vital measurement is required",
+      });
+    }
+
+    if ((data.bpSystolic && !data.bpDiastolic) || (!data.bpSystolic && data.bpDiastolic)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["bpDiastolic"],
+        message: "Both systolic and diastolic blood pressure values are required together",
+      });
+    }
+  });
 
 export const createVisitNoteSchema = z.object({
   patientId: z.string().min(1),

@@ -1,5 +1,6 @@
 import { apiClient } from "@/services/api-client";
 import type { MedicalReport } from "@/types/report";
+import type { PatientVitalRecord } from "@/types/vitals";
 
 interface ApiDoctorPatient {
   id: string;
@@ -25,16 +26,7 @@ export interface DoctorPatientHistory {
     phone: string;
     address: string;
   };
-  vitals: Array<{
-    id: string;
-    heightCm?: number | null;
-    weightKg?: number | null;
-    bloodPressure?: string | null;
-    pulseRate?: number | null;
-    temperatureC?: number | null;
-    notes?: string | null;
-    recordedAt: string;
-  }>;
+  vitals: PatientVitalRecord[];
   prescriptions: Array<{
     id: string;
     medication: string;
@@ -68,11 +60,16 @@ export interface CreatePrescriptionPayload {
 
 export interface CreateVitalsPayload {
   patientId: string;
-  heightCm?: number;
-  weightKg?: number;
-  bloodPressure?: string;
-  pulseRate?: number;
+  recordedAt?: string;
+  bloodSugar?: number;
+  heartRate?: number;
+  cholesterol?: number;
+  bpSystolic?: number;
+  bpDiastolic?: number;
   temperatureC?: number;
+  spo2?: number;
+  weightKg?: number;
+  heightCm?: number;
   notes?: string;
 }
 
@@ -116,12 +113,17 @@ export const doctorPortalService = {
   getPatientHistory: (patientId: string): Promise<DoctorPatientHistory> =>
     apiClient.get<DoctorPatientHistory>(`/doctor/patients/${patientId}/history`),
 
+  getPatientVitals: async (patientId: string): Promise<PatientVitalRecord[]> => {
+    const response = await apiClient.get<{ vitals: PatientVitalRecord[] }>(`/vitals/${patientId}`);
+    return response.vitals;
+  },
+
   getTodayAppointments: (): Promise<DoctorAppointmentQueueItem[]> =>
     apiClient.get<DoctorAppointmentQueueItem[]>("/doctor/appointments/today"),
 
   createPrescription: (payload: CreatePrescriptionPayload) => apiClient.post("/doctor/prescriptions", payload),
 
-  createVitals: (payload: CreateVitalsPayload) => apiClient.post("/doctor/vitals", payload),
+  createVitals: (payload: CreateVitalsPayload) => apiClient.post("/vitals/add", payload),
 
   createVisitNote: (payload: CreateVisitNotePayload) => apiClient.post("/doctor/visit-notes", payload),
 };

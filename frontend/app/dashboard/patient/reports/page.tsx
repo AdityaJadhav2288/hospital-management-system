@@ -1,1 +1,5 @@
-export { default } from "@/app/patient/dashboard/reports/page";
+import { notFound } from "next/navigation";
+
+export default function PatientReportsPage() {
+  notFound();
+}

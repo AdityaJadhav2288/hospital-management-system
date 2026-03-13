@@ -162,20 +162,24 @@ model Prescription {
 
 model Vitals {
   id                 String   @id @default(cuid())
-  patientId          String
-  recordedByDoctorId String?
-  heightCm           Float?
-  weightKg           Float?
-  bloodPressure      String?
-  pulseRate          Int?
-  temperatureC       Float?   @map("temperature_c")
+  patientId          String   @map("patient_id")
+  recordedByDoctorId String?  @map("recorded_by_doctor_id")
+  bloodSugar         Int?     @map("blood_sugar")
+  heartRate          Int?     @map("heart_rate")
+  cholesterol        Int?
+  bpSystolic         Int?     @map("bp_systolic")
+  bpDiastolic        Int?     @map("bp_diastolic")
+  temperatureC       Float?   @map("temperature")
+  spo2               Int?
+  weightKg           Float?   @map("weight")
+  heightCm           Float?   @map("height")
   notes              String?
-  recordedAt         DateTime @default(now())
+  recordedAt         DateTime @default(now()) @map("recorded_at")
   patient            Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
   recordedByDoctor   Doctor?  @relation(fields: [recordedByDoctorId], references: [id], onDelete: SetNull)
 
   @@index([patientId, recordedAt])
-  @@map("vitals")
+  @@map("patient_vitals")
 }
 
 model VisitNote {
