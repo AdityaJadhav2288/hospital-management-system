@@ -379,7 +379,7 @@ function SummaryCard({
           <ShieldCheck className="h-4 w-4 text-muted-foreground opacity-70" aria-hidden="true" />
         </div>
         <p className="mt-4 text-sm font-medium text-muted-foreground">{title}</p>
-        <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
+        <p className="mt-1 text-xl sm:text-2xl font-semibold text-foreground">{value}</p>
         <p className="mt-2 text-xs text-muted-foreground">{helper}</p>
       </CardContent>
     </Card>
@@ -391,7 +391,7 @@ function SummaryCard({
  */
 function EmptyChart({ title }: { title: string }): ReactElement {
   return (
-    <div className="flex h-[320px] items-center justify-center rounded-[1.6rem] border border-dashed border-border bg-muted/20 text-center">
+    <div className="flex h-[240px] sm:h-[320px] items-center justify-center rounded-[1.6rem] border border-dashed border-border bg-muted/20 text-center">
       <div className="space-y-2 px-6">
         <p className="text-sm font-semibold text-foreground">{title}</p>
         <p className="text-sm text-muted-foreground">No vitals captured for the selected time range yet.</p>
@@ -445,7 +445,7 @@ function IndicatorBarChart({
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               Latest reading
             </p>
-            <p className="mt-1 text-2xl font-semibold text-foreground">
+            <p className="mt-1 text-xl sm:text-2xl font-semibold text-foreground">
               {latest.value}
               {unit}
             </p>
@@ -461,7 +461,7 @@ function IndicatorBarChart({
             {resolveTone(latest.value, bands).toUpperCase()}
           </span>
         </div>
-        <div className="h-[260px]">
+        <div className="h-[200px] sm:h-[260px]">
           <Bar
             data={{
               labels: data.map((item) => item.label),
@@ -523,7 +523,7 @@ function BloodPressureChart({
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               Latest reading
             </p>
-            <p className="mt-1 text-2xl font-semibold text-foreground">
+            <p className="mt-1 text-xl sm:text-2xl font-semibold text-foreground">
               {latest.systolic ?? "-"} / {latest.diastolic ?? "-"} mmHg
             </p>
           </div>
@@ -540,7 +540,7 @@ function BloodPressureChart({
             {latest.systolic ? resolveTone(latest.systolic, BLOOD_PRESSURE_BANDS).toUpperCase() : "NO DATA"}
           </span>
         </div>
-        <div className="h-[280px]">
+        <div className="h-[220px] sm:h-[280px]">
           <Line
             data={{
               labels: data.map((item) => item.label),
@@ -715,11 +715,11 @@ export default function VitalsAnalyticsDashboard({
 
       {/* Charts Section */}
       {compact ? (
-        <div className="grid gap-6 xl:grid-cols-2">{compactCharts}</div>
+        <div className="grid gap-6 md:grid-cols-2">{compactCharts}</div>
       ) : (
         <div className="space-y-6">
           {/* Row 1: Blood Sugar & Heart Rate */}
-          <div className="grid gap-6 xl:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2">
             <IndicatorBarChart
               title="Blood Sugar Control Chart"
               description="Diabetes-style monitoring with green, yellow, and red control bands."
@@ -739,7 +739,7 @@ export default function VitalsAnalyticsDashboard({
           </div>
 
           {/* Row 2: Cholesterol & Blood Pressure */}
-          <div className="grid gap-6 xl:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2">
             <IndicatorBarChart
               title="Cholesterol Chart"
               description="Lipid control chart with warning and critical ranges."
